@@ -193,6 +193,17 @@
       font-weight: 500;
     }
 
+    .history-right {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .history-percentage {
+      font-size: 12px;
+      color: #8899aa;
+    }
+
     .history-empty {
       text-align: center;
       color: #8899aa;
@@ -359,6 +370,10 @@
         historyList.appendChild(empty);
         return;
       }
+
+      const latestResult = parseFloat(calcHistory[0].result);
+      const latestIsValid = calcHistory[0].result !== 'Error' && !isNaN(latestResult) && latestResult > 0;
+
       calcHistory.forEach((item, i) => {
         const div = document.createElement('div');
         div.className = 'history-item';
@@ -374,8 +389,26 @@
         resultSpan.dataset.testid = `history-result-${i}`;
         resultSpan.textContent = item.result;
 
+        const percentSpan = document.createElement('span');
+        percentSpan.className = 'history-percentage';
+        percentSpan.dataset.testid = `history-percentage-${i}`;
+
+        if (latestIsValid && item.result !== 'Error') {
+          const itemResult = parseFloat(item.result);
+          if (!isNaN(itemResult)) {
+            const pct = (itemResult / latestResult) * 100;
+            const rounded = Math.round(pct * 100) / 100;
+            percentSpan.textContent = `${rounded}%`;
+          }
+        }
+
+        const rightDiv = document.createElement('div');
+        rightDiv.className = 'history-right';
+        rightDiv.appendChild(resultSpan);
+        rightDiv.appendChild(percentSpan);
+
         div.appendChild(exprSpan);
-        div.appendChild(resultSpan);
+        div.appendChild(rightDiv);
         historyList.appendChild(div);
       });
     }

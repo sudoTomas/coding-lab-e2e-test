@@ -277,5 +277,148 @@ test.describe("Calculator UI", () => {
       await expect(page.getByTestId("history-item-0")).toBeVisible();
       await expect(page.getByTestId("history-result-0")).toHaveText("10");
     });
+
+    // Percentage display tests
+    test("shows 100% for the most recent calculation", async ({ page }) => {
+      // 5 × 4 = 20
+      await page.getByTestId("btn-5").click();
+      await page.getByTestId("btn-multiply").click();
+      await page.getByTestId("btn-4").click();
+      await page.getByTestId("btn-equals").click();
+      await expect(page.getByTestId("history-percentage-0")).toHaveText("100%");
+    });
+
+    test("shows correct percentage for older history items relative to latest", async ({ page }) => {
+      // First calculation: 2 + 3 = 5
+      await page.getByTestId("btn-2").click();
+      await page.getByTestId("btn-add").click();
+      await page.getByTestId("btn-3").click();
+      await page.getByTestId("btn-equals").click();
+
+      // Second (latest) calculation: 5 + 5 = 10
+      await page.getByTestId("btn-5").click();
+      await page.getByTestId("btn-add").click();
+      await page.getByTestId("btn-5").click();
+      await page.getByTestId("btn-equals").click();
+
+      // Latest result (10) → 100%
+      await expect(page.getByTestId("history-percentage-0")).toHaveText("100%");
+      // Previous result (5) is 50% of 10
+      await expect(page.getByTestId("history-percentage-1")).toHaveText("50%");
+    });
+
+    test("shows no percentage when latest result is zero", async ({ page }) => {
+      // 5 - 5 = 0 (latest result is zero, cannot compute percentage)
+      await page.getByTestId("btn-5").click();
+      await page.getByTestId("btn-subtract").click();
+      await page.getByTestId("btn-5").click();
+      await page.getByTestId("btn-equals").click();
+      await expect(page.getByTestId("history-percentage-0")).toHaveText("");
+    });
+
+    test("shows no percentage when latest result is an error", async ({ page }) => {
+      // 5 ÷ 0 = Error
+      await page.getByTestId("btn-5").click();
+      await page.getByTestId("btn-divide").click();
+      await page.getByTestId("btn-0").click();
+      await page.getByTestId("btn-equals").click();
+      await expect(page.getByTestId("history-percentage-0")).toHaveText("");
+    });
+
+    test("percentage updates when a new calculation is added", async ({ page }) => {
+      // First: 5 + 5 = 10
+      await page.getByTestId("btn-5").click();
+      await page.getByTestId("btn-add").click();
+      await page.getByTestId("btn-5").click();
+      await page.getByTestId("btn-equals").click();
+      // Only one entry, latest is 100%
+      await expect(page.getByTestId("history-percentage-0")).toHaveText("100%");
+
+      // Second: 4 × 5 = 20 (new latest)
+      await page.getByTestId("btn-4").click();
+      await page.getByTestId("btn-multiply").click();
+      await page.getByTestId("btn-5").click();
+      await page.getByTestId("btn-equals").click();
+
+      // New latest (20) → 100%; old result (10) → 50% of 20
+      await expect(page.getByTestId("history-percentage-0")).toHaveText("100%");
+      await expect(page.getByTestId("history-percentage-1")).toHaveText("50%");
+    });
+
+    test("shows no percentage for an older history item that is an error", async ({ page }) => {
+      // First: 5 ÷ 0 = Error
+      await page.getByTestId("btn-5").click();
+      await page.getByTestId("btn-divide").click();
+      await page.getByTestId("btn-0").click();
+      await page.getByTestId("btn-equals").click();
+
+      // Second (latest): 3 + 0 = 3
+      await page.getByTestId("btn-3").click();
+      await page.getByTestId("btn-add").click();
+      await page.getByTestId("btn-0").click();
+      await page.getByTestId("btn-equals").click();
+
+      // Latest result (3) → 100%
+      await expect(page.getByTestId("history-percentage-0")).toHaveText("100%");
+      // Older Error result → no percentage
+      await expect(page.getByTestId("history-percentage-1")).toHaveText("");
+    });
+
+    test("shows decimal percentage for non-integer results", async ({ page }) => {
+      // First: 1 + 0 = 1
+      await page.getByTestId("btn-1").click();
+      await page.getByTestId("btn-add").click();
+      await page.getByTestId("btn-0").click();
+      await page.getByTestId("btn-equals").click();
+
+      // Second (latest): 3 + 0 = 3
+      await page.getByTestId("btn-3").click();
+      await page.getByTestId("btn-add").click();
+      await page.getByTestId("btn-0").click();
+      await page.getByTestId("btn-equals").click();
+
+      // Latest result (3) → 100%
+      await expect(page.getByTestId("history-percentage-0")).toHaveText("100%");
+      // Prior result (1) is 33.33% of 3
+      await expect(page.getByTestId("history-percentage-1")).toHaveText("33.33%");
+    });
+
+    test("shows no percentage when latest result is negative", async ({ page }) => {
+      // First: 3 + 0 = 3
+      await page.getByTestId("btn-3").click();
+      await page.getByTestId("btn-add").click();
+      await page.getByTestId("btn-0").click();
+      await page.getByTestId("btn-equals").click();
+
+      // Second (latest): 5 - 8 = -3
+      await page.getByTestId("btn-5").click();
+      await page.getByTestId("btn-subtract").click();
+      await page.getByTestId("btn-8").click();
+      await page.getByTestId("btn-equals").click();
+
+      // Latest result is -3 (negative) → no percentage shown
+      await expect(page.getByTestId("history-percentage-0")).toHaveText("");
+      // Older result (3) → no percentage shown (latest is invalid)
+      await expect(page.getByTestId("history-percentage-1")).toHaveText("");
+    });
+
+    test("shows 0% for an older history item with a zero result", async ({ page }) => {
+      // First: 5 - 5 = 0
+      await page.getByTestId("btn-5").click();
+      await page.getByTestId("btn-subtract").click();
+      await page.getByTestId("btn-5").click();
+      await page.getByTestId("btn-equals").click();
+
+      // Second (latest): 5 + 5 = 10
+      await page.getByTestId("btn-5").click();
+      await page.getByTestId("btn-add").click();
+      await page.getByTestId("btn-5").click();
+      await page.getByTestId("btn-equals").click();
+
+      // Latest result (10) → 100%
+      await expect(page.getByTestId("history-percentage-0")).toHaveText("100%");
+      // Older result (0) → 0% of 10
+      await expect(page.getByTestId("history-percentage-1")).toHaveText("0%");
+    });
   });
 });
