@@ -450,4 +450,86 @@ test.describe("Calculator UI", () => {
       await expect(page.getByTestId("history-percentage-1")).toHaveText("0%");
     });
   });
+
+  // Theme toggle tests
+  test.describe("Theme toggle", () => {
+    test("theme toggle button is visible", async ({ page }) => {
+      await expect(page.getByTestId("btn-theme-toggle")).toBeVisible();
+    });
+
+    test("theme icon is visible", async ({ page }) => {
+      await expect(page.getByTestId("theme-icon")).toBeVisible();
+    });
+
+    test("default theme is dark mode with moon icon", async ({ page }) => {
+      // Icon is CSS-driven (::before); verify via the aria-label that reflects current mode
+      await expect(page.getByTestId("btn-theme-toggle")).toHaveAttribute("aria-label", "Switch to light mode");
+    });
+
+    test("default theme does not have light-mode class on html element", async ({ page }) => {
+      const htmlClass = await page.locator("html").getAttribute("class");
+      expect(htmlClass || "").not.toContain("light-mode");
+    });
+
+    test("clicking toggle switches to light mode with sun icon", async ({ page }) => {
+      await page.getByTestId("btn-theme-toggle").click();
+      await expect(page.getByTestId("btn-theme-toggle")).toHaveAttribute("aria-label", "Switch to dark mode");
+    });
+
+    test("clicking toggle adds light-mode class to html element", async ({ page }) => {
+      await page.getByTestId("btn-theme-toggle").click();
+      await expect(page.locator("html")).toHaveClass(/light-mode/);
+    });
+
+    test("clicking toggle twice returns to dark mode with moon icon", async ({ page }) => {
+      await page.getByTestId("btn-theme-toggle").click(); // to light
+      await page.getByTestId("btn-theme-toggle").click(); // back to dark
+      await expect(page.getByTestId("btn-theme-toggle")).toHaveAttribute("aria-label", "Switch to light mode");
+    });
+
+    test("clicking toggle twice removes light-mode class", async ({ page }) => {
+      await page.getByTestId("btn-theme-toggle").click(); // to light
+      await page.getByTestId("btn-theme-toggle").click(); // back to dark
+      const htmlClass = await page.locator("html").getAttribute("class");
+      expect(htmlClass || "").not.toContain("light-mode");
+    });
+
+    test("theme preference is stored as 'light' in localStorage after toggling", async ({ page }) => {
+      await page.getByTestId("btn-theme-toggle").click();
+      const stored = await page.evaluate(() => localStorage.getItem("theme"));
+      expect(stored).toBe("light");
+    });
+
+    test("theme preference is stored as 'dark' in localStorage after toggling back", async ({ page }) => {
+      await page.getByTestId("btn-theme-toggle").click(); // to light
+      await page.getByTestId("btn-theme-toggle").click(); // back to dark
+      const stored = await page.evaluate(() => localStorage.getItem("theme"));
+      expect(stored).toBe("dark");
+    });
+
+    test("light mode preference persists after page reload", async ({ page }) => {
+      await page.getByTestId("btn-theme-toggle").click(); // switch to light
+      await page.reload();
+      await expect(page.getByTestId("btn-theme-toggle")).toHaveAttribute("aria-label", "Switch to dark mode");
+      await expect(page.locator("html")).toHaveClass(/light-mode/);
+    });
+
+    test("dark mode preference persists after page reload", async ({ page }) => {
+      await page.getByTestId("btn-theme-toggle").click(); // to light
+      await page.getByTestId("btn-theme-toggle").click(); // back to dark
+      await page.reload();
+      await expect(page.getByTestId("btn-theme-toggle")).toHaveAttribute("aria-label", "Switch to light mode");
+      const htmlClass = await page.locator("html").getAttribute("class");
+      expect(htmlClass || "").not.toContain("light-mode");
+    });
+
+    test("calculator still works in light mode", async ({ page }) => {
+      await page.getByTestId("btn-theme-toggle").click(); // switch to light
+      await page.getByTestId("btn-3").click();
+      await page.getByTestId("btn-add").click();
+      await page.getByTestId("btn-4").click();
+      await page.getByTestId("btn-equals").click();
+      await expect(page.getByTestId("value")).toHaveText("7");
+    });
+  });
 });
