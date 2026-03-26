@@ -117,7 +117,7 @@
     .btn-equals {
       background: #0f9b58;
       color: #ffffff;
-      grid-column: span 2;
+      grid-column: span 4;
     }
 
     .btn-equals:hover {
@@ -242,6 +242,7 @@
 
         <button class="btn-number btn-zero" data-testid="btn-0" onclick="digit('0')">0</button>
         <button class="btn-number" data-testid="btn-decimal" onclick="decimal()">.</button>
+        <button class="btn-utility" data-testid="btn-backspace" onclick="backspace()">⌫</button>
         <button class="btn-equals" data-testid="btn-equals" onclick="calculate()">=</button>
       </div>
     </div>
@@ -418,6 +419,17 @@
       renderHistory();
     }
 
+    function backspace() {
+      if (!resetNext && current.length > 1) {
+        const sliced = current.slice(0, -1);
+        current = sliced === '-' ? '0' : sliced;  // don't leave a bare '-'
+      } else {
+        current = '0';
+        resetNext = false;
+      }
+      updateDisplay();
+    }
+
     // Keyboard support
     document.addEventListener('keydown', function(e) {
       if (e.key >= '0' && e.key <= '9') {
@@ -440,14 +452,7 @@
       } else if (e.key === '%') {
         percent();
       } else if (e.key === 'Backspace') {
-        if (!resetNext && current.length > 1) {
-          const sliced = current.slice(0, -1);
-          current = sliced === '-' ? '0' : sliced;  // don't leave a bare '-'
-        } else {
-          current = '0';
-          resetNext = false;
-        }
-        updateDisplay();
+        backspace();
       }
     });
   </script>
