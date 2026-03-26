@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calculator</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #1a1a2e;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      color: #e0e0e0;
+    }
+
+    .calculator {
+      background: #16213e;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+      width: 320px;
+    }
+
+    .display {
+      background: #0f3460;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+      text-align: right;
+      min-height: 80px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+    }
+
+    .display .expression {
+      font-size: 14px;
+      color: #8899aa;
+      min-height: 20px;
+      word-break: break-all;
+    }
+
+    .display .value {
+      font-size: 36px;
+      font-weight: 300;
+      color: #ffffff;
+      word-break: break-all;
+    }
+
+    .buttons {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+
+    button {
+      padding: 18px;
+      font-size: 18px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+      font-family: inherit;
+    }
+
+    button:active {
+      transform: scale(0.95);
+    }
+
+    .btn-number {
+      background: #1a1a3e;
+      color: #ffffff;
+    }
+
+    .btn-number:hover {
+      background: #2a2a5e;
+    }
+
+    .btn-operator {
+      background: #e94560;
+      color: #ffffff;
+    }
+
+    .btn-operator:hover {
+      background: #ff6b81;
+    }
+
+    .btn-clear {
+      background: #533483;
+      color: #ffffff;
+    }
+
+    .btn-clear:hover {
+      background: #7044a3;
+    }
+
+    .btn-equals {
+      background: #0f9b58;
+      color: #ffffff;
+      grid-column: span 2;
+    }
+
+    .btn-equals:hover {
+      background: #12b866;
+    }
+
+    .btn-zero {
+      grid-column: span 2;
+    }
+  </style>
+</head>
+<body>
+  <div class="calculator" data-testid="calculator">
+    <div class="display" data-testid="display">
+      <div class="expression" data-testid="expression"></div>
+      <div class="value" data-testid="value">0</div>
+    </div>
+    <div class="buttons">
+      <button class="btn-clear" data-testid="btn-clear" onclick="clearAll()">C</button>
+      <button class="btn-clear" data-testid="btn-sign" onclick="toggleSign()">±</button>
+      <button class="btn-clear" data-testid="btn-percent" onclick="percent()">%</button>
+      <button class="btn-operator" data-testid="btn-divide" onclick="setOp('÷')">÷</button>
+
+      <button class="btn-number" data-testid="btn-7" onclick="digit('7')">7</button>
+      <button class="btn-number" data-testid="btn-8" onclick="digit('8')">8</button>
+      <button class="btn-number" data-testid="btn-9" onclick="digit('9')">9</button>
+      <button class="btn-operator" data-testid="btn-multiply" onclick="setOp('×')">×</button>
+
+      <button class="btn-number" data-testid="btn-4" onclick="digit('4')">4</button>
+      <button class="btn-number" data-testid="btn-5" onclick="digit('5')">5</button>
+      <button class="btn-number" data-testid="btn-6" onclick="digit('6')">6</button>
+      <button class="btn-operator" data-testid="btn-subtract" onclick="setOp('−')">−</button>
+
+      <button class="btn-number" data-testid="btn-1" onclick="digit('1')">1</button>
+      <button class="btn-number" data-testid="btn-2" onclick="digit('2')">2</button>
+      <button class="btn-number" data-testid="btn-3" onclick="digit('3')">3</button>
+      <button class="btn-operator" data-testid="btn-add" onclick="setOp('+')">+</button>
+
+      <button class="btn-number btn-zero" data-testid="btn-0" onclick="digit('0')">0</button>
+      <button class="btn-number" data-testid="btn-decimal" onclick="decimal()">.</button>
+      <button class="btn-equals" data-testid="btn-equals" onclick="calculate()">=</button>
+    </div>
+  </div>
+
+  <script>
+    let current = '0';
+    let previous = '';
+    let operator = '';
+    let resetNext = false;
+
+    const display = document.querySelector('[data-testid="value"]');
+    const expression = document.querySelector('[data-testid="expression"]');
+
+    function updateDisplay() {
+      display.textContent = current;
+    }
+
+    function digit(d) {
+      if (resetNext) {
+        current = d;
+        resetNext = false;
+      } else {
+        current = current === '0' ? d : current + d;
+      }
+      updateDisplay();
+    }
+
+    function decimal() {
+      if (resetNext) {
+        current = '0.';
+        resetNext = false;
+      } else if (!current.includes('.')) {
+        current += '.';
+      }
+      updateDisplay();
+    }
+
+    function setOp(op) {
+      if (operator && !resetNext) {
+        calculate();
+      }
+      previous = current;
+      operator = op;
+      expression.textContent = `${previous} ${operator}`;
+      resetNext = true;
+    }
+
+    function calculate() {
+      if (!operator || !previous) return;
+
+      const a = parseFloat(previous);
+      const b = parseFloat(current);
+      let result;
+
+      switch (operator) {
+        case '+': result = a + b; break;
+        case '−': result = a - b; break;
+        case '×': result = a * b; break;
+        case '÷': result = b !== 0 ? a / b : 'Error'; break;
+        default: return;
+      }
+
+      expression.textContent = `${previous} ${operator} ${current} =`;
+      current = result === 'Error' ? 'Error' : String(parseFloat(result.toFixed(10)));
+      operator = '';
+      previous = '';
+      resetNext = true;
+      updateDisplay();
+    }
+
+    function clearAll() {
+      current = '0';
+      previous = '';
+      operator = '';
+      resetNext = false;
+      expression.textContent = '';
+      updateDisplay();
+    }
+
+    function toggleSign() {
+      if (current !== '0' && current !== 'Error') {
+        current = current.startsWith('-') ? current.slice(1) : '-' + current;
+        updateDisplay();
+      }
+    }
+
+    function percent() {
+      if (current !== 'Error') {
+        current = String(parseFloat(current) / 100);
+        updateDisplay();
+      }
+    }
+  </script>
+</body>
+</html>

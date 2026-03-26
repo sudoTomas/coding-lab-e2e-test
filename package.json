@@ -1,0 +1,12 @@
+{
+  "name": "coding-lab-e2e-test",
+  "private": true,
+  "scripts": {
+    "serve": "python serve.py",
+    "test": "python -m pytest test_main.py",
+    "test:ui": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.52.0"
+  }
+}
