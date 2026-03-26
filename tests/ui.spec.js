@@ -27,6 +27,35 @@ test.describe("Calculator UI", () => {
     await expect(page.getByTestId("btn-clear")).toBeVisible();
   });
 
+  test("backspace button is visible", async ({ page }) => {
+    await expect(page.getByTestId("btn-backspace")).toBeVisible();
+  });
+
+  test("backspace button deletes last digit", async ({ page }) => {
+    await page.getByTestId("btn-4").click();
+    await page.getByTestId("btn-2").click();
+    await page.getByTestId("btn-backspace").click();
+    await expect(page.getByTestId("value")).toHaveText("4");
+  });
+
+  test("backspace button on single digit resets to zero", async ({ page }) => {
+    await page.getByTestId("btn-7").click();
+    await page.getByTestId("btn-backspace").click();
+    await expect(page.getByTestId("value")).toHaveText("0");
+  });
+
+  test("backspace button on multi-digit number removes one digit at a time", async ({ page }) => {
+    await page.getByTestId("btn-1").click();
+    await page.getByTestId("btn-2").click();
+    await page.getByTestId("btn-3").click();
+    await page.getByTestId("btn-backspace").click();
+    await expect(page.getByTestId("value")).toHaveText("12");
+    await page.getByTestId("btn-backspace").click();
+    await expect(page.getByTestId("value")).toHaveText("1");
+    await page.getByTestId("btn-backspace").click();
+    await expect(page.getByTestId("value")).toHaveText("0");
+  });
+
   test("clicking digits updates display", async ({ page }) => {
     await page.getByTestId("btn-4").click();
     await page.getByTestId("btn-2").click();
