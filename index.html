@@ -12,9 +12,17 @@
       background: #1a1a2e;
       display: flex;
       justify-content: center;
-      align-items: center;
+      align-items: flex-start;
       min-height: 100vh;
       color: #e0e0e0;
+      padding: 40px 20px;
+    }
+
+    .wrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      width: 320px;
     }
 
     .calculator {
@@ -22,7 +30,6 @@
       border-radius: 16px;
       padding: 24px;
       box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
-      width: 320px;
     }
 
     .display {
@@ -98,6 +105,15 @@
       background: #7044a3;
     }
 
+    .btn-utility {
+      background: #533483;
+      color: #ffffff;
+    }
+
+    .btn-utility:hover {
+      background: #7044a3;
+    }
+
     .btn-equals {
       background: #0f9b58;
       color: #ffffff;
@@ -111,38 +127,122 @@
     .btn-zero {
       grid-column: span 2;
     }
+
+    /* History panel */
+    .history-panel {
+      background: #16213e;
+      border-radius: 16px;
+      padding: 16px 20px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+    }
+
+    .history-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .history-title {
+      font-size: 14px;
+      color: #8899aa;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .btn-clear-history {
+      padding: 4px 12px;
+      font-size: 12px;
+      background: #533483;
+      color: #ffffff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.15s;
+      font-family: inherit;
+    }
+
+    .btn-clear-history:hover {
+      background: #7044a3;
+    }
+
+    .history-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .history-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 12px;
+      background: #0f3460;
+      border-radius: 8px;
+    }
+
+    .history-expression {
+      font-size: 13px;
+      color: #8899aa;
+    }
+
+    .history-result {
+      font-size: 15px;
+      color: #ffffff;
+      font-weight: 500;
+    }
+
+    .history-empty {
+      text-align: center;
+      color: #8899aa;
+      font-size: 13px;
+      padding: 10px 0;
+    }
   </style>
 </head>
 <body>
-  <div class="calculator" data-testid="calculator">
-    <div class="display" data-testid="display">
-      <div class="expression" data-testid="expression"></div>
-      <div class="value" data-testid="value">0</div>
+  <div class="wrapper">
+    <div class="calculator" data-testid="calculator">
+      <div class="display" data-testid="display">
+        <div class="expression" data-testid="expression"></div>
+        <div class="value" data-testid="value">0</div>
+      </div>
+      <div class="buttons">
+        <button class="btn-clear" data-testid="btn-clear" onclick="clearAll()">C</button>
+        <button class="btn-utility" data-testid="btn-sign" onclick="toggleSign()">±</button>
+        <button class="btn-utility" data-testid="btn-percent" onclick="percent()">%</button>
+        <button class="btn-operator" data-testid="btn-divide" onclick="setOp('÷')">÷</button>
+
+        <button class="btn-number" data-testid="btn-7" onclick="digit('7')">7</button>
+        <button class="btn-number" data-testid="btn-8" onclick="digit('8')">8</button>
+        <button class="btn-number" data-testid="btn-9" onclick="digit('9')">9</button>
+        <button class="btn-operator" data-testid="btn-multiply" onclick="setOp('×')">×</button>
+
+        <button class="btn-number" data-testid="btn-4" onclick="digit('4')">4</button>
+        <button class="btn-number" data-testid="btn-5" onclick="digit('5')">5</button>
+        <button class="btn-number" data-testid="btn-6" onclick="digit('6')">6</button>
+        <button class="btn-operator" data-testid="btn-subtract" onclick="setOp('−')">−</button>
+
+        <button class="btn-number" data-testid="btn-1" onclick="digit('1')">1</button>
+        <button class="btn-number" data-testid="btn-2" onclick="digit('2')">2</button>
+        <button class="btn-number" data-testid="btn-3" onclick="digit('3')">3</button>
+        <button class="btn-operator" data-testid="btn-add" onclick="setOp('+')">+</button>
+
+        <button class="btn-number btn-zero" data-testid="btn-0" onclick="digit('0')">0</button>
+        <button class="btn-number" data-testid="btn-decimal" onclick="decimal()">.</button>
+        <button class="btn-equals" data-testid="btn-equals" onclick="calculate()">=</button>
+      </div>
     </div>
-    <div class="buttons">
-      <button class="btn-clear" data-testid="btn-clear" onclick="clearAll()">C</button>
-      <button class="btn-clear" data-testid="btn-sign" onclick="toggleSign()">±</button>
-      <button class="btn-clear" data-testid="btn-percent" onclick="percent()">%</button>
-      <button class="btn-operator" data-testid="btn-divide" onclick="setOp('÷')">÷</button>
 
-      <button class="btn-number" data-testid="btn-7" onclick="digit('7')">7</button>
-      <button class="btn-number" data-testid="btn-8" onclick="digit('8')">8</button>
-      <button class="btn-number" data-testid="btn-9" onclick="digit('9')">9</button>
-      <button class="btn-operator" data-testid="btn-multiply" onclick="setOp('×')">×</button>
-
-      <button class="btn-number" data-testid="btn-4" onclick="digit('4')">4</button>
-      <button class="btn-number" data-testid="btn-5" onclick="digit('5')">5</button>
-      <button class="btn-number" data-testid="btn-6" onclick="digit('6')">6</button>
-      <button class="btn-operator" data-testid="btn-subtract" onclick="setOp('−')">−</button>
-
-      <button class="btn-number" data-testid="btn-1" onclick="digit('1')">1</button>
-      <button class="btn-number" data-testid="btn-2" onclick="digit('2')">2</button>
-      <button class="btn-number" data-testid="btn-3" onclick="digit('3')">3</button>
-      <button class="btn-operator" data-testid="btn-add" onclick="setOp('+')">+</button>
-
-      <button class="btn-number btn-zero" data-testid="btn-0" onclick="digit('0')">0</button>
-      <button class="btn-number" data-testid="btn-decimal" onclick="decimal()">.</button>
-      <button class="btn-equals" data-testid="btn-equals" onclick="calculate()">=</button>
+    <div class="history-panel" data-testid="history-panel">
+      <div class="history-header">
+        <span class="history-title">History</span>
+        <button class="btn-clear-history" data-testid="btn-clear-history" onclick="clearHistory()">Clear</button>
+      </div>
+      <div class="history-list" data-testid="history-list">
+        <div class="history-empty" data-testid="history-empty">No history yet</div>
+      </div>
     </div>
   </div>
 
@@ -151,9 +251,11 @@
     let previous = '';
     let operator = '';
     let resetNext = false;
+    let calcHistory = [];
 
     const display = document.querySelector('[data-testid="value"]');
     const expression = document.querySelector('[data-testid="expression"]');
+    const historyList = document.querySelector('[data-testid="history-list"]');
 
     function updateDisplay() {
       display.textContent = current;
@@ -180,6 +282,7 @@
     }
 
     function setOp(op) {
+      if (current === 'Error') return;
       if (operator && !resetNext) {
         calculate();
       }
@@ -204,8 +307,13 @@
         default: return;
       }
 
-      expression.textContent = `${previous} ${operator} ${current} =`;
-      current = result === 'Error' ? 'Error' : String(parseFloat(result.toFixed(10)));
+      const expressionText = `${previous} ${operator} ${current} =`;
+      expression.textContent = expressionText;
+      const resultStr = result === 'Error' ? 'Error' : String(parseFloat(result.toFixed(10)));
+
+      addToHistory(expressionText, resultStr);
+
+      current = resultStr;
       operator = '';
       previous = '';
       resetNext = true;
@@ -234,6 +342,81 @@
         updateDisplay();
       }
     }
+
+    function addToHistory(expr, result) {
+      calcHistory.unshift({ expression: expr, result });
+      if (calcHistory.length > 5) calcHistory.pop();
+      renderHistory();
+    }
+
+    function renderHistory() {
+      historyList.innerHTML = '';
+      if (calcHistory.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'history-empty';
+        empty.dataset.testid = 'history-empty';
+        empty.textContent = 'No history yet';
+        historyList.appendChild(empty);
+        return;
+      }
+      calcHistory.forEach((item, i) => {
+        const div = document.createElement('div');
+        div.className = 'history-item';
+        div.dataset.testid = `history-item-${i}`;
+
+        const exprSpan = document.createElement('span');
+        exprSpan.className = 'history-expression';
+        exprSpan.dataset.testid = `history-expression-${i}`;
+        exprSpan.textContent = item.expression;
+
+        const resultSpan = document.createElement('span');
+        resultSpan.className = 'history-result';
+        resultSpan.dataset.testid = `history-result-${i}`;
+        resultSpan.textContent = item.result;
+
+        div.appendChild(exprSpan);
+        div.appendChild(resultSpan);
+        historyList.appendChild(div);
+      });
+    }
+
+    function clearHistory() {
+      calcHistory = [];
+      renderHistory();
+    }
+
+    // Keyboard support
+    document.addEventListener('keydown', function(e) {
+      if (e.key >= '0' && e.key <= '9') {
+        digit(e.key);
+      } else if (e.key === '.') {
+        decimal();
+      } else if (e.key === '+') {
+        setOp('+');
+      } else if (e.key === '-') {
+        setOp('−');
+      } else if (e.key === '*') {
+        setOp('×');
+      } else if (e.key === '/') {
+        e.preventDefault();
+        setOp('÷');
+      } else if (e.key === 'Enter' || e.key === '=') {
+        calculate();
+      } else if (e.key === 'Escape') {
+        clearAll();
+      } else if (e.key === '%') {
+        percent();
+      } else if (e.key === 'Backspace') {
+        if (!resetNext && current.length > 1) {
+          const sliced = current.slice(0, -1);
+          current = sliced === '-' ? '0' : sliced;  // don't leave a bare '-'
+        } else {
+          current = '0';
+          resetNext = false;
+        }
+        updateDisplay();
+      }
+    });
   </script>
 </body>
 </html>
