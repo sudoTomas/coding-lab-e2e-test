@@ -5,135 +5,278 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Calculator</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: #1a1a2e;
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-      min-height: 100vh;
-      color: #e0e0e0;
-      padding: 40px 20px;
+    /* ── Reset ──────────────────────────────────────────────────── */
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
     }
 
+    /* ── Design tokens ──────────────────────────────────────────── */
+    :root {
+      --bg:                  #07070f;
+      --glass-bg:            rgba(255, 255, 255, 0.045);
+      --glass-border:        rgba(255, 255, 255, 0.09);
+      --glass-highlight:     rgba(255, 255, 255, 0.07);
+
+      --display-bg:          rgba(0, 0, 0, 0.55);
+      --display-border:      rgba(255, 255, 255, 0.06);
+
+      --btn-number-bg:       rgba(255, 255, 255, 0.09);
+      --btn-number-border:   rgba(255, 255, 255, 0.07);
+      --btn-number-hover:    rgba(255, 255, 255, 0.15);
+
+      --btn-op-bg:           #5c6cf0;
+      --btn-op-hover:        #6e7ef5;
+      --btn-op-border:       rgba(130, 145, 255, 0.3);
+      --btn-op-shadow:       rgba(92, 108, 240, 0.35);
+
+      --btn-clear-bg:        rgba(239, 68, 68, 0.18);
+      --btn-clear-border:    rgba(239, 68, 68, 0.22);
+      --btn-clear-text:      #fc8181;
+      --btn-clear-hover:     rgba(239, 68, 68, 0.28);
+
+      --btn-utility-bg:      rgba(255, 255, 255, 0.07);
+      --btn-utility-border:  rgba(255, 255, 255, 0.07);
+      --btn-utility-hover:   rgba(255, 255, 255, 0.13);
+
+      --btn-eq-from:         #6366f1;
+      --btn-eq-to:           #9333ea;
+      --btn-eq-shadow:       rgba(99, 102, 241, 0.42);
+
+      --text-primary:        #ffffff;
+      --text-secondary:      rgba(255, 255, 255, 0.38);
+      --text-dim:            rgba(255, 255, 255, 0.22);
+      --accent:              #818cf8;
+
+      --radius-card:    26px;
+      --radius-hist:    22px;
+      --radius-display: 18px;
+      --radius-btn:     16px;
+      --radius-small:    8px;
+      --gap:             9px;
+      --ease:            0.14s ease;
+    }
+
+    /* ── Body / Gradient background ─────────────────────────────── */
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display',
+                   'Helvetica Neue', 'Segoe UI', system-ui, sans-serif;
+      background-color: var(--bg);
+      background-image:
+        radial-gradient(ellipse 65% 55% at 12% 18%, rgba(99,102,241,.20) 0%, transparent 68%),
+        radial-gradient(ellipse 55% 45% at 88% 12%, rgba(147,51,234,.16) 0%, transparent 65%),
+        radial-gradient(ellipse 45% 65% at 72% 92%, rgba(59,130,246,.12) 0%, transparent 65%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 52px 20px 64px;
+      color: var(--text-primary);
+    }
+
+    /* ── Wrapper ─────────────────────────────────────────────────── */
     .wrapper {
       display: flex;
       flex-direction: column;
-      gap: 16px;
-      width: 320px;
+      gap: 14px;
+      width: 340px;
     }
 
+    /* ── Calculator card ─────────────────────────────────────────── */
     .calculator {
-      background: #16213e;
-      border-radius: 16px;
+      background: var(--glass-bg);
+      backdrop-filter: blur(28px);
+      -webkit-backdrop-filter: blur(28px);
+      border-radius: var(--radius-card);
       padding: 24px;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+      border: 1px solid var(--glass-border);
+      box-shadow:
+        0 40px 80px rgba(0,0,0,.65),
+        0  8px 24px rgba(0,0,0,.40),
+        inset 0 1px 0 var(--glass-highlight);
     }
 
+    /* ── Display ─────────────────────────────────────────────────── */
     .display {
-      background: #0f3460;
-      border-radius: 12px;
-      padding: 20px;
-      margin-bottom: 20px;
+      background: var(--display-bg);
+      border-radius: var(--radius-display);
+      padding: 20px 22px 18px;
+      margin-bottom: 18px;
       text-align: right;
-      min-height: 80px;
+      min-height: 100px;
       display: flex;
       flex-direction: column;
       justify-content: flex-end;
+      border: 1px solid var(--display-border);
+      box-shadow: inset 0 2px 14px rgba(0,0,0,.55);
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Subtle gloss stripe at the top */
+    .display::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(160deg, rgba(255,255,255,.04) 0%, transparent 55%);
+      pointer-events: none;
+      border-radius: var(--radius-display);
     }
 
     .display .expression {
-      font-size: 14px;
-      color: #8899aa;
+      font-size: 12.5px;
+      color: var(--text-secondary);
       min-height: 20px;
       word-break: break-all;
+      font-weight: 300;
+      letter-spacing: .035em;
+      margin-bottom: 5px;
     }
 
     .display .value {
-      font-size: 36px;
+      font-size: 44px;
       font-weight: 300;
-      color: #ffffff;
+      color: var(--text-primary);
       word-break: break-all;
+      letter-spacing: -.025em;
+      line-height: 1.05;
+      font-variant-numeric: tabular-nums;
     }
 
+    /* ── Button grid ─────────────────────────────────────────────── */
     .buttons {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 10px;
+      gap: var(--gap);
     }
 
+    /* ── Base button ─────────────────────────────────────────────── */
     button {
-      padding: 18px;
+      padding: 19px 14px;
       font-size: 18px;
       border: none;
-      border-radius: 10px;
+      border-radius: var(--radius-btn);
       cursor: pointer;
-      transition: background 0.15s, transform 0.1s;
+      transition:
+        transform   var(--ease),
+        box-shadow  var(--ease),
+        background  var(--ease),
+        filter      var(--ease);
       font-family: inherit;
+      font-weight: 400;
+      color: var(--text-primary);
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
     }
 
     button:active {
-      transform: scale(0.95);
+      transform: scale(0.91);
     }
 
+    button:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 3px;
+    }
+
+    /* ── Number buttons ──────────────────────────────────────────── */
     .btn-number {
-      background: #1a1a3e;
-      color: #ffffff;
+      background: var(--btn-number-bg);
+      border: 1px solid var(--btn-number-border);
+      box-shadow: 0 2px 8px rgba(0,0,0,.25);
     }
 
     .btn-number:hover {
-      background: #2a2a5e;
+      background: var(--btn-number-hover);
+      box-shadow: 0 4px 14px rgba(0,0,0,.35);
     }
 
+    /* ── Operator buttons ────────────────────────────────────────── */
     .btn-operator {
-      background: #e94560;
-      color: #ffffff;
+      background: var(--btn-op-bg);
+      border: 1px solid var(--btn-op-border);
+      box-shadow: 0 4px 18px var(--btn-op-shadow);
+      font-weight: 500;
+      font-size: 20px;
     }
 
     .btn-operator:hover {
-      background: #ff6b81;
+      background: var(--btn-op-hover);
+      box-shadow: 0 6px 22px var(--btn-op-shadow);
+      filter: brightness(1.06);
     }
 
+    .btn-operator.active {
+      background: #ffffff;
+      color: #5c6cf0;
+      border-color: rgba(255,255,255,0.4);
+      box-shadow: 0 4px 20px rgba(255,255,255,0.25);
+    }
+
+    /* ── Clear button ────────────────────────────────────────────── */
     .btn-clear {
-      background: #533483;
-      color: #ffffff;
+      background: var(--btn-clear-bg);
+      border: 1px solid var(--btn-clear-border);
+      color: var(--btn-clear-text);
+      font-weight: 600;
+      box-shadow: 0 2px 8px rgba(0,0,0,.2);
     }
 
     .btn-clear:hover {
-      background: #7044a3;
+      background: var(--btn-clear-hover);
+      box-shadow: 0 4px 16px rgba(239,68,68,.25);
     }
 
+    /* ── Utility buttons (±, %, ⌫) ──────────────────────────────── */
     .btn-utility {
-      background: #533483;
-      color: #ffffff;
+      background: var(--btn-utility-bg);
+      border: 1px solid var(--btn-utility-border);
+      box-shadow: 0 2px 8px rgba(0,0,0,.2);
     }
 
     .btn-utility:hover {
-      background: #7044a3;
+      background: var(--btn-utility-hover);
+      box-shadow: 0 4px 12px rgba(0,0,0,.3);
     }
 
+    /* ── Equals button ───────────────────────────────────────────── */
     .btn-equals {
-      background: #0f9b58;
-      color: #ffffff;
+      background: linear-gradient(135deg, var(--btn-eq-from) 0%, var(--btn-eq-to) 100%);
+      border: 1px solid rgba(139,92,246,.28);
       grid-column: span 4;
+      font-size: 20px;
+      font-weight: 500;
+      letter-spacing: .06em;
+      box-shadow:
+        0  6px 24px var(--btn-eq-shadow),
+        0  2px  8px rgba(99,102,241,.25);
     }
 
     .btn-equals:hover {
-      background: #12b866;
+      filter: brightness(1.09);
+      box-shadow:
+        0  8px 30px var(--btn-eq-shadow),
+        0  3px 10px rgba(147,51,234,.3);
     }
 
+    /* ── Zero button (wide) ──────────────────────────────────────── */
     .btn-zero {
       grid-column: span 2;
+      text-align: left;
+      padding-left: 22px;
     }
 
-    /* History panel */
+    /* ── History panel ───────────────────────────────────────────── */
     .history-panel {
-      background: #16213e;
-      border-radius: 16px;
-      padding: 16px 20px;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+      background: var(--glass-bg);
+      backdrop-filter: blur(28px);
+      -webkit-backdrop-filter: blur(28px);
+      border-radius: var(--radius-hist);
+      padding: 16px 18px;
+      border: 1px solid var(--glass-border);
+      box-shadow:
+        0 24px 60px rgba(0,0,0,.55),
+        inset 0 1px 0 var(--glass-highlight);
     }
 
     .history-header {
@@ -144,106 +287,139 @@
     }
 
     .history-title {
-      font-size: 14px;
-      color: #8899aa;
-      font-weight: 500;
+      font-size: 10px;
+      color: var(--text-dim);
+      font-weight: 600;
       text-transform: uppercase;
-      letter-spacing: 0.05em;
+      letter-spacing: .15em;
     }
 
     .btn-clear-history {
       padding: 4px 12px;
-      font-size: 12px;
-      background: #533483;
-      color: #ffffff;
-      border: none;
-      border-radius: 6px;
+      font-size: 11px;
+      background: rgba(255,255,255,.07);
+      color: rgba(255,255,255,.5);
+      border: 1px solid rgba(255,255,255,.09);
+      border-radius: var(--radius-small);
       cursor: pointer;
-      transition: background 0.15s;
+      transition: all var(--ease);
       font-family: inherit;
+      font-weight: 500;
+      letter-spacing: .02em;
     }
 
     .btn-clear-history:hover {
-      background: #7044a3;
+      background: rgba(255,255,255,.13);
+      color: rgba(255,255,255,.78);
+      border-color: rgba(255,255,255,.16);
     }
 
+    /* ── History list ────────────────────────────────────────────── */
     .history-list {
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 5px;
     }
 
     .history-item {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 8px 12px;
-      background: #0f3460;
-      border-radius: 8px;
+      padding: 9px 12px;
+      background: rgba(255,255,255,.03);
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.05);
+      transition: background var(--ease);
+    }
+
+    .history-item:hover {
+      background: rgba(255,255,255,.06);
     }
 
     .history-expression {
-      font-size: 13px;
-      color: #8899aa;
-    }
-
-    .history-result {
-      font-size: 15px;
-      color: #ffffff;
-      font-weight: 500;
+      font-size: 12px;
+      color: var(--text-dim);
+      font-weight: 300;
+      flex: 1;
+      margin-right: 10px;
+      word-break: break-all;
     }
 
     .history-right {
       display: flex;
-      align-items: center;
-      gap: 6px;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 1px;
+      flex-shrink: 0;
+    }
+
+    .history-result {
+      font-size: 15px;
+      color: rgba(255,255,255,.88);
+      font-weight: 500;
+      font-variant-numeric: tabular-nums;
     }
 
     .history-percentage {
-      font-size: 12px;
-      color: #8899aa;
+      font-size: 10px;
+      color: var(--accent);
+      font-weight: 500;
+      letter-spacing: .02em;
+      min-height: 14px;
+    }
+
+    /* ── Result pop animation ────────────────────────────────────── */
+    @keyframes result-pop {
+      from { opacity: 0.4; transform: scale(0.96); }
+      to   { opacity: 1;   transform: scale(1); }
+    }
+    .value.result-animate {
+      animation: result-pop 0.18s ease forwards;
     }
 
     .history-empty {
       text-align: center;
-      color: #8899aa;
-      font-size: 13px;
+      color: var(--text-dim);
+      font-size: 12.5px;
       padding: 10px 0;
+      font-style: italic;
+      font-weight: 300;
+      letter-spacing: .02em;
     }
   </style>
 </head>
 <body>
   <div class="wrapper">
     <div class="calculator" data-testid="calculator">
-      <div class="display" data-testid="display">
+      <div class="display" data-testid="display" aria-live="polite" aria-atomic="true">
         <div class="expression" data-testid="expression"></div>
         <div class="value" data-testid="value">0</div>
       </div>
       <div class="buttons">
-        <button class="btn-clear" data-testid="btn-clear" onclick="clearAll()">C</button>
-        <button class="btn-utility" data-testid="btn-sign" onclick="toggleSign()">±</button>
-        <button class="btn-utility" data-testid="btn-percent" onclick="percent()">%</button>
-        <button class="btn-operator" data-testid="btn-divide" onclick="setOp('÷')">÷</button>
+        <button class="btn-clear"   data-testid="btn-clear"     onclick="clearAll()" aria-label="clear">C</button>
+        <button class="btn-utility" data-testid="btn-sign"      onclick="toggleSign()" aria-label="toggle sign">±</button>
+        <button class="btn-utility" data-testid="btn-percent"   onclick="percent()" aria-label="percent">%</button>
+        <button class="btn-operator" data-testid="btn-divide"   onclick="setOp('÷')" aria-label="divide">÷</button>
 
-        <button class="btn-number" data-testid="btn-7" onclick="digit('7')">7</button>
-        <button class="btn-number" data-testid="btn-8" onclick="digit('8')">8</button>
-        <button class="btn-number" data-testid="btn-9" onclick="digit('9')">9</button>
-        <button class="btn-operator" data-testid="btn-multiply" onclick="setOp('×')">×</button>
+        <button class="btn-number"  data-testid="btn-7"         onclick="digit('7')">7</button>
+        <button class="btn-number"  data-testid="btn-8"         onclick="digit('8')">8</button>
+        <button class="btn-number"  data-testid="btn-9"         onclick="digit('9')">9</button>
+        <button class="btn-operator" data-testid="btn-multiply" onclick="setOp('×')" aria-label="multiply">×</button>
 
-        <button class="btn-number" data-testid="btn-4" onclick="digit('4')">4</button>
-        <button class="btn-number" data-testid="btn-5" onclick="digit('5')">5</button>
-        <button class="btn-number" data-testid="btn-6" onclick="digit('6')">6</button>
-        <button class="btn-operator" data-testid="btn-subtract" onclick="setOp('−')">−</button>
+        <button class="btn-number"  data-testid="btn-4"         onclick="digit('4')">4</button>
+        <button class="btn-number"  data-testid="btn-5"         onclick="digit('5')">5</button>
+        <button class="btn-number"  data-testid="btn-6"         onclick="digit('6')">6</button>
+        <button class="btn-operator" data-testid="btn-subtract" onclick="setOp('−')" aria-label="subtract">−</button>
 
-        <button class="btn-number" data-testid="btn-1" onclick="digit('1')">1</button>
-        <button class="btn-number" data-testid="btn-2" onclick="digit('2')">2</button>
-        <button class="btn-number" data-testid="btn-3" onclick="digit('3')">3</button>
-        <button class="btn-operator" data-testid="btn-add" onclick="setOp('+')">+</button>
+        <button class="btn-number"  data-testid="btn-1"         onclick="digit('1')">1</button>
+        <button class="btn-number"  data-testid="btn-2"         onclick="digit('2')">2</button>
+        <button class="btn-number"  data-testid="btn-3"         onclick="digit('3')">3</button>
+        <button class="btn-operator" data-testid="btn-add"      onclick="setOp('+')" aria-label="add">+</button>
 
         <button class="btn-number btn-zero" data-testid="btn-0" onclick="digit('0')">0</button>
-        <button class="btn-number" data-testid="btn-decimal" onclick="decimal()">.</button>
-        <button class="btn-utility" data-testid="btn-backspace" onclick="backspace()">⌫</button>
-        <button class="btn-equals" data-testid="btn-equals" onclick="calculate()">=</button>
+        <button class="btn-number"  data-testid="btn-decimal"   onclick="decimal()" aria-label="decimal point">.</button>
+        <button class="btn-utility" data-testid="btn-backspace"  onclick="backspace()" aria-label="backspace">⌫</button>
+        <button class="btn-equals"  data-testid="btn-equals"    onclick="calculate()" aria-label="equals">=</button>
       </div>
     </div>
 
@@ -270,7 +446,18 @@
     const historyList = document.querySelector('[data-testid="history-list"]');
 
     function updateDisplay() {
-      display.textContent = current;
+      if (current === 'Error') { display.textContent = 'Error'; return; }
+      // Don't format mid-entry (trailing decimal or bare negative sign)
+      if (current.endsWith('.') || current === '-') { display.textContent = current; return; }
+      const num = parseFloat(current);
+      if (isNaN(num)) { display.textContent = current; return; }
+      // Preserve visible decimal places the user has typed
+      const hasDecimal = current.includes('.');
+      const decimalPlaces = hasDecimal ? current.split('.')[1].length : 0;
+      display.textContent = num.toLocaleString('en-US', {
+        maximumFractionDigits: decimalPlaces,
+        minimumFractionDigits: decimalPlaces
+      });
     }
 
     function digit(d) {
@@ -302,6 +489,10 @@
       operator = op;
       expression.textContent = `${previous} ${operator}`;
       resetNext = true;
+      // Highlight the active operator button
+      document.querySelectorAll('.btn-operator').forEach(b => b.classList.remove('active'));
+      const opMap = { '+': 'btn-add', '−': 'btn-subtract', '×': 'btn-multiply', '÷': 'btn-divide' };
+      document.querySelector(`[data-testid="${opMap[op]}"]`)?.classList.add('active');
     }
 
     function calculate() {
@@ -329,7 +520,13 @@
       operator = '';
       previous = '';
       resetNext = true;
+      // Clear active operator highlight
+      document.querySelectorAll('.btn-operator').forEach(b => b.classList.remove('active'));
       updateDisplay();
+      // Trigger result pop animation
+      display.classList.remove('result-animate');
+      void display.offsetWidth; // force reflow
+      display.classList.add('result-animate');
     }
 
     function clearAll() {
@@ -338,6 +535,8 @@
       operator = '';
       resetNext = false;
       expression.textContent = '';
+      // Clear active operator highlight
+      document.querySelectorAll('.btn-operator').forEach(b => b.classList.remove('active'));
       updateDisplay();
     }
 
@@ -373,6 +572,9 @@
       }
 
       const latestResult = parseFloat(calcHistory[0].result);
+      // Only compute percentages when the latest result is a positive number.
+      // Negative denominators would produce confusing ratios (e.g. -7 as 100% base),
+      // so percentages are intentionally suppressed for negative latest results.
       const latestIsValid = calcHistory[0].result !== 'Error' && !isNaN(latestResult) && latestResult > 0;
 
       calcHistory.forEach((item, i) => {
