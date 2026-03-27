@@ -5,135 +5,241 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Calculator</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    /* ─── Reset & Base ──────────────────────────────────────────────── */
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: #1a1a2e;
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI',
+                   Roboto, 'Helvetica Neue', sans-serif;
+      background: #0d0d1a;
+      min-height: 100vh;
       display: flex;
       justify-content: center;
+      /* flex-start (not center) keeps the calculator pinned to the top so the
+         layout doesn't jump when the history panel grows below it */
       align-items: flex-start;
-      min-height: 100vh;
-      color: #e0e0e0;
-      padding: 40px 20px;
+      padding: 48px 20px;
+      overflow-x: hidden;
+      position: relative;
     }
 
+    /* ─── Animated background gradient ─────────────────────────────── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 60% 55% at 10% 10%,  rgba(109, 40, 217, 0.25) 0%, transparent 70%),
+        radial-gradient(ellipse 50% 45% at 90% 15%,  rgba(219, 39,  119, 0.18) 0%, transparent 65%),
+        radial-gradient(ellipse 55% 60% at 50% 95%,  rgba(30,  58,  138, 0.30) 0%, transparent 70%),
+        linear-gradient(160deg, #0d0d1a 0%, #130f2a 40%, #0d1a2e 100%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Floating ambient orbs */
+    body::after {
+      content: '';
+      position: fixed;
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, rgba(139, 92, 246, 0.12) 0%, transparent 70%);
+      border-radius: 50%;
+      top: -150px; right: -150px;
+      filter: blur(40px);
+      pointer-events: none;
+      z-index: 0;
+      animation: drift 12s ease-in-out infinite alternate;
+    }
+
+    @keyframes drift {
+      from { transform: translate(0, 0) scale(1); }
+      to   { transform: translate(-40px, 40px) scale(1.05); }
+    }
+
+    /* ─── Layout ────────────────────────────────────────────────────── */
     .wrapper {
+      position: relative;
+      z-index: 1;
       display: flex;
       flex-direction: column;
-      gap: 16px;
-      width: 320px;
+      gap: 14px;
+      width: 340px;
+    }
+
+    /* ─── Glass card mixin ──────────────────────────────────────────── */
+    .calculator,
+    .history-panel {
+      background: rgba(255, 255, 255, 0.055);
+      backdrop-filter: blur(24px) saturate(160%);
+      -webkit-backdrop-filter: blur(24px) saturate(160%);
+      border: 1px solid rgba(255, 255, 255, 0.10);
+      box-shadow:
+        0 32px 64px rgba(0, 0, 0, 0.55),
+        0 0 0 1px rgba(255, 255, 255, 0.04) inset,
+        0 1px 0   rgba(255, 255, 255, 0.12) inset;
     }
 
     .calculator {
-      background: #16213e;
-      border-radius: 16px;
-      padding: 24px;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+      border-radius: 28px;
+      padding: 22px;
     }
 
+    /* ─── Display ───────────────────────────────────────────────────── */
     .display {
-      background: #0f3460;
-      border-radius: 12px;
-      padding: 20px;
-      margin-bottom: 20px;
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-radius: 18px;
+      padding: 18px 22px 20px;
+      margin-bottom: 18px;
       text-align: right;
-      min-height: 80px;
+      min-height: 100px;
       display: flex;
       flex-direction: column;
       justify-content: flex-end;
+      gap: 4px;
+      overflow: hidden;
     }
 
     .display .expression {
-      font-size: 14px;
-      color: #8899aa;
-      min-height: 20px;
+      font-size: 13px;
+      font-weight: 400;
+      color: rgba(255, 255, 255, 0.38);
+      min-height: 18px;
       word-break: break-all;
+      letter-spacing: 0.03em;
     }
 
     .display .value {
-      font-size: 36px;
-      font-weight: 300;
+      font-size: 44px;
+      font-weight: 200;
       color: #ffffff;
       word-break: break-all;
+      letter-spacing: -2px;
+      line-height: 1.05;
     }
 
+    /* ─── Button grid ───────────────────────────────────────────────── */
     .buttons {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 10px;
+      gap: 9px;
     }
 
     button {
-      padding: 18px;
+      padding: 19px 14px;
       font-size: 18px;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      transition: background 0.15s, transform 0.1s;
       font-family: inherit;
+      font-weight: 500;
+      border: none;
+      border-radius: 15px;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      outline: none;
+      /* smooth colour & scale transitions */
+      transition:
+        transform   0.12s cubic-bezier(0.34, 1.56, 0.64, 1),
+        box-shadow  0.15s ease,
+        filter      0.15s ease;
+      -webkit-tap-highlight-color: transparent;
     }
+
+    /* Shine overlay — brightens on hover */
+    button::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: rgba(255, 255, 255, 0);
+      border-radius: inherit;
+      transition: background 0.18s ease;
+    }
+    button:hover::before  { background: rgba(255, 255, 255, 0.09); }
+    button:active::before { background: rgba(255, 255, 255, 0.18); }
 
     button:active {
-      transform: scale(0.95);
+      transform: scale(0.91);
     }
 
+    /* ── Number buttons ─────────────────────────────────────────────── */
     .btn-number {
-      background: #1a1a3e;
-      color: #ffffff;
+      background: rgba(255, 255, 255, 0.09);
+      color: #f0f0ff;
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      letter-spacing: -0.02em;
     }
+    .btn-number:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.25); }
 
-    .btn-number:hover {
-      background: #2a2a5e;
-    }
-
+    /* ── Operator buttons (÷ × − +) ─────────────────────────────────── */
     .btn-operator {
-      background: #e94560;
-      color: #ffffff;
+      background: linear-gradient(155deg, #f97316 0%, #ea580c 100%);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.12);
+      box-shadow:
+        0 4px 18px rgba(249, 115, 22, 0.38),
+        0 1px 0 rgba(255,255,255,0.18) inset;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.25);
     }
-
     .btn-operator:hover {
-      background: #ff6b81;
+      box-shadow:
+        0 6px 24px rgba(249, 115, 22, 0.50),
+        0 1px 0 rgba(255,255,255,0.18) inset;
+      filter: brightness(1.08);
     }
 
+    /* ── Clear button ──────────────────────────────────────────────── */
     .btn-clear {
-      background: #533483;
-      color: #ffffff;
+      background: rgba(239, 68, 68, 0.16);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.22);
+      font-weight: 600;
     }
-
     .btn-clear:hover {
-      background: #7044a3;
+      background: rgba(239, 68, 68, 0.24);
+      box-shadow: 0 4px 16px rgba(239, 68, 68, 0.20);
     }
 
+    /* ── Utility buttons (±, %) ────────────────────────────────────── */
     .btn-utility {
-      background: #533483;
-      color: #ffffff;
+      background: rgba(255, 255, 255, 0.09);
+      color: rgba(255, 255, 255, 0.65);
+      border: 1px solid rgba(255, 255, 255, 0.07);
     }
-
     .btn-utility:hover {
-      background: #7044a3;
+      background: rgba(255, 255, 255, 0.13);
+      color: rgba(255, 255, 255, 0.90);
     }
 
+    /* ── Equals button ─────────────────────────────────────────────── */
     .btn-equals {
-      background: #0f9b58;
-      color: #ffffff;
+      background: linear-gradient(155deg, #8b5cf6 0%, #7c3aed 55%, #6d28d9 100%);
+      color: #fff;
       grid-column: span 4;
+      font-size: 20px;
+      letter-spacing: -0.01em;
+      border: 1px solid rgba(255,255,255,0.12);
+      box-shadow:
+        0 6px 24px rgba(124, 58, 237, 0.45),
+        0 1px 0 rgba(255,255,255,0.20) inset;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.30);
     }
-
     .btn-equals:hover {
-      background: #12b866;
+      box-shadow:
+        0 8px 32px rgba(124, 58, 237, 0.60),
+        0 1px 0 rgba(255,255,255,0.20) inset;
+      filter: brightness(1.08);
     }
 
+    /* ── Zero button (wide) ────────────────────────────────────────── */
     .btn-zero {
       grid-column: span 2;
+      text-align: left;
+      padding-left: 22px;
     }
 
-    /* History panel */
+    /* ─── History panel ─────────────────────────────────────────────── */
     .history-panel {
-      background: #16213e;
-      border-radius: 16px;
-      padding: 16px 20px;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+      border-radius: 22px;
+      padding: 16px 18px 18px;
     }
 
     .history-header {
@@ -144,27 +250,30 @@
     }
 
     .history-title {
-      font-size: 14px;
-      color: #8899aa;
-      font-weight: 500;
+      font-size: 10px;
+      font-weight: 700;
+      color: rgba(255, 255, 255, 0.35);
       text-transform: uppercase;
-      letter-spacing: 0.05em;
+      letter-spacing: 0.14em;
     }
 
     .btn-clear-history {
-      padding: 4px 12px;
-      font-size: 12px;
-      background: #533483;
-      color: #ffffff;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: background 0.15s;
+      padding: 4px 11px;
+      font-size: 11px;
+      font-weight: 500;
       font-family: inherit;
+      background: rgba(255, 255, 255, 0.07);
+      color: rgba(255, 255, 255, 0.45);
+      border: 1px solid rgba(255, 255, 255, 0.10);
+      border-radius: 8px;
+      cursor: pointer;
+      letter-spacing: 0.02em;
+      transition: all 0.15s ease;
     }
-
     .btn-clear-history:hover {
-      background: #7044a3;
+      background: rgba(255, 255, 255, 0.12);
+      color: rgba(255, 255, 255, 0.80);
+      border-color: rgba(255, 255, 255, 0.18);
     }
 
     .history-list {
@@ -177,38 +286,95 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 8px 12px;
-      background: #0f3460;
-      border-radius: 8px;
+      padding: 9px 13px;
+      background: rgba(0, 0, 0, 0.22);
+      border: 1px solid rgba(255, 255, 255, 0.055);
+      border-radius: 11px;
+      animation: slideIn 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(-8px); }
+      to   { opacity: 1; transform: translateY(0); }
     }
 
     .history-expression {
-      font-size: 13px;
-      color: #8899aa;
-    }
-
-    .history-result {
-      font-size: 15px;
-      color: #ffffff;
-      font-weight: 500;
+      font-size: 11.5px;
+      color: rgba(255, 255, 255, 0.30);
+      letter-spacing: 0.01em;
     }
 
     .history-right {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 7px;
+    }
+
+    .history-result {
+      font-size: 14.5px;
+      font-weight: 500;
+      color: #e0d9ff;
+      letter-spacing: -0.03em;
     }
 
     .history-percentage {
-      font-size: 12px;
-      color: #8899aa;
+      font-size: 10px;
+      font-weight: 600;
+      color: rgba(167, 139, 250, 0.85);
+      background: rgba(139, 92, 246, 0.15);
+      border: 1px solid rgba(139, 92, 246, 0.20);
+      padding: 2px 6px;
+      border-radius: 5px;
+      letter-spacing: 0.02em;
     }
 
     .history-empty {
       text-align: center;
-      color: #8899aa;
-      font-size: 13px;
-      padding: 10px 0;
+      color: rgba(255, 255, 255, 0.22);
+      font-size: 12.5px;
+      padding: 12px 0;
+      letter-spacing: 0.03em;
+    }
+
+    /* ── Active operator highlight ─────────────────────────────────── */
+    .btn-operator--active {
+      background: linear-gradient(155deg, #fff3e8 0%, #ffe0c0 100%);
+      color: #c2410c;
+      box-shadow:
+        0 4px 18px rgba(249, 115, 22, 0.55),
+        0 1px 0 rgba(255,255,255,0.35) inset;
+    }
+
+    /* ── Backspace button (distinct destructive styling) ───────────── */
+    .btn-backspace {
+      background: rgba(239, 68, 68, 0.10);
+      color: rgba(248, 113, 113, 0.85);
+      border: 1px solid rgba(239, 68, 68, 0.18);
+    }
+    .btn-backspace:hover {
+      background: rgba(239, 68, 68, 0.18);
+      color: #f87171;
+      box-shadow: 0 4px 14px rgba(239, 68, 68, 0.18);
+    }
+
+    /* ── Calculator & history entrance animation ───────────────────── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px) scale(0.97); }
+      to   { opacity: 1; transform: translateY(0)    scale(1); }
+    }
+
+    .calculator {
+      animation: fadeUp 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+
+    .history-panel {
+      animation: fadeUp 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.08s both;
+    }
+
+    /* ─── Focus ring for accessibility ──────────────────────────────── */
+    button:focus-visible {
+      outline: 2px solid rgba(139, 92, 246, 0.70);
+      outline-offset: 2px;
     }
   </style>
 </head>
@@ -217,33 +383,33 @@
     <div class="calculator" data-testid="calculator">
       <div class="display" data-testid="display">
         <div class="expression" data-testid="expression"></div>
-        <div class="value" data-testid="value">0</div>
+        <div class="value" data-testid="value" aria-live="polite" aria-atomic="true">0</div>
       </div>
       <div class="buttons">
-        <button class="btn-clear" data-testid="btn-clear" onclick="clearAll()">C</button>
-        <button class="btn-utility" data-testid="btn-sign" onclick="toggleSign()">±</button>
-        <button class="btn-utility" data-testid="btn-percent" onclick="percent()">%</button>
-        <button class="btn-operator" data-testid="btn-divide" onclick="setOp('÷')">÷</button>
+        <button class="btn-clear"   data-testid="btn-clear"     onclick="clearAll()">C</button>
+        <button class="btn-utility" data-testid="btn-sign"      onclick="toggleSign()" aria-label="Toggle sign">±</button>
+        <button class="btn-utility" data-testid="btn-percent"   onclick="percent()" aria-label="Percent">%</button>
+        <button class="btn-operator" data-testid="btn-divide"   onclick="setOp('÷')" aria-label="Divide">÷</button>
 
-        <button class="btn-number" data-testid="btn-7" onclick="digit('7')">7</button>
-        <button class="btn-number" data-testid="btn-8" onclick="digit('8')">8</button>
-        <button class="btn-number" data-testid="btn-9" onclick="digit('9')">9</button>
-        <button class="btn-operator" data-testid="btn-multiply" onclick="setOp('×')">×</button>
+        <button class="btn-number"  data-testid="btn-7"         onclick="digit('7')">7</button>
+        <button class="btn-number"  data-testid="btn-8"         onclick="digit('8')">8</button>
+        <button class="btn-number"  data-testid="btn-9"         onclick="digit('9')">9</button>
+        <button class="btn-operator" data-testid="btn-multiply" onclick="setOp('×')" aria-label="Multiply">×</button>
 
-        <button class="btn-number" data-testid="btn-4" onclick="digit('4')">4</button>
-        <button class="btn-number" data-testid="btn-5" onclick="digit('5')">5</button>
-        <button class="btn-number" data-testid="btn-6" onclick="digit('6')">6</button>
-        <button class="btn-operator" data-testid="btn-subtract" onclick="setOp('−')">−</button>
+        <button class="btn-number"  data-testid="btn-4"         onclick="digit('4')">4</button>
+        <button class="btn-number"  data-testid="btn-5"         onclick="digit('5')">5</button>
+        <button class="btn-number"  data-testid="btn-6"         onclick="digit('6')">6</button>
+        <button class="btn-operator" data-testid="btn-subtract" onclick="setOp('−')" aria-label="Subtract">−</button>
 
-        <button class="btn-number" data-testid="btn-1" onclick="digit('1')">1</button>
-        <button class="btn-number" data-testid="btn-2" onclick="digit('2')">2</button>
-        <button class="btn-number" data-testid="btn-3" onclick="digit('3')">3</button>
-        <button class="btn-operator" data-testid="btn-add" onclick="setOp('+')">+</button>
+        <button class="btn-number"  data-testid="btn-1"         onclick="digit('1')">1</button>
+        <button class="btn-number"  data-testid="btn-2"         onclick="digit('2')">2</button>
+        <button class="btn-number"  data-testid="btn-3"         onclick="digit('3')">3</button>
+        <button class="btn-operator" data-testid="btn-add"      onclick="setOp('+')" aria-label="Add">+</button>
 
-        <button class="btn-number btn-zero" data-testid="btn-0" onclick="digit('0')">0</button>
-        <button class="btn-number" data-testid="btn-decimal" onclick="decimal()">.</button>
-        <button class="btn-utility" data-testid="btn-backspace" onclick="backspace()">⌫</button>
-        <button class="btn-equals" data-testid="btn-equals" onclick="calculate()">=</button>
+        <button class="btn-number btn-zero" data-testid="btn-0"       onclick="digit('0')">0</button>
+        <button class="btn-number"          data-testid="btn-decimal"  onclick="decimal()">.</button>
+        <button class="btn-backspace"       data-testid="btn-backspace" onclick="backspace()" aria-label="Backspace">⌫</button>
+        <button class="btn-equals"          data-testid="btn-equals"   onclick="calculate()">=</button>
       </div>
     </div>
 
@@ -252,9 +418,9 @@
         <span class="history-title">History</span>
         <button class="btn-clear-history" data-testid="btn-clear-history" onclick="clearHistory()">Clear</button>
       </div>
-      <div class="history-list" data-testid="history-list">
-        <div class="history-empty" data-testid="history-empty">No history yet</div>
-      </div>
+      <ul class="history-list" data-testid="history-list" style="list-style:none">
+        <li class="history-empty" data-testid="history-empty">No history yet</li>
+      </ul>
     </div>
   </div>
 
@@ -265,12 +431,38 @@
     let resetNext = false;
     let calcHistory = [];
 
-    const display = document.querySelector('[data-testid="value"]');
+    const display    = document.querySelector('[data-testid="value"]');
     const expression = document.querySelector('[data-testid="expression"]');
     const historyList = document.querySelector('[data-testid="history-list"]');
 
+    // ── Font scaling for long numbers ────────────────────────────────
+    function fitText() {
+      const len = current.length;
+      let size = 44;
+      if (len > 9)  size = 36;
+      if (len > 12) size = 28;
+      if (len > 16) size = 22;
+      display.style.fontSize = size + 'px';
+    }
+
     function updateDisplay() {
       display.textContent = current;
+      fitText();
+    }
+
+    // ── Format result – avoid raw scientific notation ────────────────
+    function formatResult(n) {
+      if (typeof n !== 'number') return String(n);
+      const fixed = parseFloat(n.toFixed(10));
+      if (Math.abs(fixed) <= 1e10 && (Math.abs(fixed) > 1e-6 || fixed === 0)) {
+        return String(fixed);
+      }
+      return n.toExponential(4);
+    }
+
+    // ── Active-operator highlight helpers ────────────────────────────
+    function clearActiveOp() {
+      document.querySelectorAll('.btn-operator').forEach(b => b.classList.remove('btn-operator--active'));
     }
 
     function digit(d) {
@@ -298,6 +490,9 @@
       if (operator && !resetNext) {
         calculate();
       }
+      clearActiveOp();
+      const opMap = { '÷': 'btn-divide', '×': 'btn-multiply', '−': 'btn-subtract', '+': 'btn-add' };
+      document.querySelector(`[data-testid="${opMap[op]}"]`)?.classList.add('btn-operator--active');
       previous = current;
       operator = op;
       expression.textContent = `${previous} ${operator}`;
@@ -319,23 +514,25 @@
         default: return;
       }
 
+      clearActiveOp();
       const expressionText = `${previous} ${operator} ${current} =`;
       expression.textContent = expressionText;
-      const resultStr = result === 'Error' ? 'Error' : String(parseFloat(result.toFixed(10)));
+      const resultStr = result === 'Error' ? 'Error' : formatResult(result);
 
       addToHistory(expressionText, resultStr);
 
-      current = resultStr;
-      operator = '';
-      previous = '';
+      current   = resultStr;
+      operator  = '';
+      previous  = '';
       resetNext = true;
       updateDisplay();
     }
 
     function clearAll() {
-      current = '0';
-      previous = '';
-      operator = '';
+      clearActiveOp();
+      current   = '0';
+      previous  = '';
+      operator  = '';
       resetNext = false;
       expression.textContent = '';
       updateDisplay();
@@ -350,21 +547,33 @@
 
     function percent() {
       if (current !== 'Error') {
-        current = String(parseFloat(current) / 100);
+        current = formatResult(parseFloat(current) / 100);
         updateDisplay();
       }
+    }
+
+    // ── localStorage persistence ─────────────────────────────────────
+    function saveHistory() {
+      try { localStorage.setItem('calcHistory', JSON.stringify(calcHistory)); } catch(e) {}
+    }
+
+    function loadHistory() {
+      try { calcHistory = JSON.parse(localStorage.getItem('calcHistory')) || []; }
+      catch(e) { calcHistory = []; }
+      renderHistory();
     }
 
     function addToHistory(expr, result) {
       calcHistory.unshift({ expression: expr, result });
       if (calcHistory.length > 5) calcHistory.pop();
+      saveHistory();
       renderHistory();
     }
 
     function renderHistory() {
       historyList.innerHTML = '';
       if (calcHistory.length === 0) {
-        const empty = document.createElement('div');
+        const empty = document.createElement('li');
         empty.className = 'history-empty';
         empty.dataset.testid = 'history-empty';
         empty.textContent = 'No history yet';
@@ -372,11 +581,12 @@
         return;
       }
 
-      const latestResult = parseFloat(calcHistory[0].result);
-      const latestIsValid = calcHistory[0].result !== 'Error' && !isNaN(latestResult) && latestResult > 0;
+      const latestResult  = parseFloat(calcHistory[0].result);
+      const latestIsValid = calcHistory[0].result !== 'Error' &&
+                            !isNaN(latestResult) && latestResult > 0;
 
       calcHistory.forEach((item, i) => {
-        const div = document.createElement('div');
+        const div = document.createElement('li');
         div.className = 'history-item';
         div.dataset.testid = `history-item-${i}`;
 
@@ -397,7 +607,7 @@
         if (latestIsValid && item.result !== 'Error') {
           const itemResult = parseFloat(item.result);
           if (!isNaN(itemResult)) {
-            const pct = (itemResult / latestResult) * 100;
+            const pct     = (itemResult / latestResult) * 100;
             const rounded = Math.round(pct * 100) / 100;
             percentSpan.textContent = `${rounded}%`;
           }
@@ -416,21 +626,25 @@
 
     function clearHistory() {
       calcHistory = [];
+      saveHistory();
       renderHistory();
     }
 
     function backspace() {
       if (!resetNext && current.length > 1) {
         const sliced = current.slice(0, -1);
-        current = sliced === '-' ? '0' : sliced;  // don't leave a bare '-'
+        current = sliced === '-' ? '0' : sliced;
       } else {
-        current = '0';
+        current   = '0';
         resetNext = false;
       }
       updateDisplay();
     }
 
-    // Keyboard support
+    // ── Initialise ──────────────────────────────────────────────────────
+    loadHistory();
+
+    // ── Keyboard support ────────────────────────────────────────────────
     document.addEventListener('keydown', function(e) {
       if (e.key >= '0' && e.key <= '9') {
         digit(e.key);
