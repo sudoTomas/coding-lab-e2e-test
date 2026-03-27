@@ -7,15 +7,112 @@
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
+    /* ── Default (dark) theme variables ── */
+    :root {
+      --color-page-bg: #1a1a2e;
+      --color-page-text: #e0e0e0;
+      --color-panel-bg: #16213e;
+      --color-display-bg: #0f3460;
+      --color-display-text: #ffffff;
+      --color-muted: #8899aa;
+      --color-btn-number-bg: #1a1a3e;
+      --color-btn-number-hover: #2a2a5e;
+      --color-btn-number-text: #ffffff;
+      --color-btn-operator-bg: #e94560;
+      --color-btn-operator-hover: #ff6b81;
+      --color-btn-clear-bg: #c0562a;
+      --color-btn-clear-hover: #d96830;
+      --color-btn-utility-bg: #533483;
+      --color-btn-utility-hover: #7044a3;
+      --color-btn-equals-bg: #0f9b58;
+      --color-btn-equals-hover: #12b866;
+      --color-btn-text: #ffffff;
+      --color-history-item-bg: #0f3460;
+      --color-shadow: rgba(0, 0, 0, 0.4);
+    }
+
+    /* ── Light theme ── */
+    [data-theme="light"] {
+      --color-page-bg: #f0f0f5;
+      --color-page-text: #333333;
+      --color-panel-bg: #ffffff;
+      --color-display-bg: #e0e8f5;
+      --color-display-text: #1a1a2e;
+      --color-muted: #667788;
+      --color-btn-number-bg: #e0e4f0;
+      --color-btn-number-hover: #ccd0e0;
+      --color-btn-number-text: #1a1a2e;
+      --color-btn-operator-bg: #e94560;
+      --color-btn-operator-hover: #d03050;
+      --color-btn-clear-bg: #c0562a;
+      --color-btn-clear-hover: #a04020;
+      --color-btn-utility-bg: #7044a3;
+      --color-btn-utility-hover: #533483;
+      --color-btn-equals-bg: #0f9b58;
+      --color-btn-equals-hover: #0a7a44;
+      --color-btn-text: #ffffff;
+      --color-history-item-bg: #eef0f8;
+      --color-shadow: rgba(0, 0, 0, 0.15);
+    }
+
+    /* ── High Contrast theme ── */
+    [data-theme="contrast"] {
+      --color-page-bg: #000000;
+      --color-page-text: #ffffff;
+      --color-panel-bg: #111111;
+      --color-display-bg: #000000;
+      --color-display-text: #ffffff;
+      --color-muted: #ffff00;
+      --color-btn-number-bg: #222222;
+      --color-btn-number-hover: #444444;
+      --color-btn-number-text: #ffffff;
+      --color-btn-operator-bg: #cc0000;
+      --color-btn-operator-hover: #ff0000;
+      --color-btn-clear-bg: #cc6600;
+      --color-btn-clear-hover: #ff8800;
+      --color-btn-utility-bg: #0033cc;
+      --color-btn-utility-hover: #0055ff;
+      --color-btn-equals-bg: #006600;
+      --color-btn-equals-hover: #009900;
+      --color-btn-text: #ffffff;
+      --color-history-item-bg: #111111;
+      --color-shadow: rgba(255, 255, 255, 0.05);
+    }
+
+    /* ── Solarized theme ── */
+    [data-theme="solarized"] {
+      --color-page-bg: #002b36;
+      --color-page-text: #839496;
+      --color-panel-bg: #073642;
+      --color-display-bg: #002b36;
+      --color-display-text: #fdf6e3;
+      --color-muted: #657b83;
+      --color-btn-number-bg: #073642;
+      --color-btn-number-hover: #0a4455;
+      --color-btn-number-text: #fdf6e3;
+      --color-btn-operator-bg: #dc322f;
+      --color-btn-operator-hover: #e05555;
+      --color-btn-clear-bg: #cb4b16;
+      --color-btn-clear-hover: #d96020;
+      --color-btn-utility-bg: #6c71c4;
+      --color-btn-utility-hover: #8186cc;
+      --color-btn-equals-bg: #859900;
+      --color-btn-equals-hover: #9aad00;
+      --color-btn-text: #fdf6e3;
+      --color-history-item-bg: #073642;
+      --color-shadow: rgba(0, 0, 0, 0.4);
+    }
+
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: #1a1a2e;
+      background: var(--color-page-bg);
       display: flex;
       justify-content: center;
       align-items: flex-start;
       min-height: 100vh;
-      color: #e0e0e0;
+      color: var(--color-page-text);
       padding: 40px 20px;
+      transition: background 0.25s, color 0.25s;
     }
 
     .wrapper {
@@ -26,14 +123,61 @@
     }
 
     .calculator {
-      background: #16213e;
+      background: var(--color-panel-bg);
       border-radius: 16px;
       padding: 24px;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+      box-shadow: 0 20px 60px var(--color-shadow);
+      transition: background 0.25s, box-shadow 0.25s;
     }
 
+    /* ── Theme switcher ── */
+    .theme-switcher {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .theme-switcher-label {
+      font-size: 11px;
+      color: var(--color-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-right: 4px;
+    }
+
+    .theme-swatch {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      border: 1px solid rgba(128, 128, 128, 0.3);
+      cursor: pointer;
+      padding: 0;
+      transition: transform 0.15s;
+      flex-shrink: 0;
+    }
+
+    .theme-swatch:hover {
+      transform: scale(1.2);
+    }
+
+    .theme-swatch:active {
+      transform: scale(1.0);
+    }
+
+    .theme-swatch.active {
+      outline: 2px solid var(--color-muted);
+      outline-offset: 2px;
+    }
+
+    .theme-swatch-dark     { background: #1a1a2e; }
+    .theme-swatch-light    { background: #f0f0f5; border-color: #aaaacc; }
+    .theme-swatch-contrast { background: #000000; }
+    .theme-swatch-solarized { background: #002b36; }
+
     .display {
-      background: #0f3460;
+      background: var(--color-display-bg);
       border-radius: 12px;
       padding: 20px;
       margin-bottom: 20px;
@@ -42,20 +186,23 @@
       display: flex;
       flex-direction: column;
       justify-content: flex-end;
+      transition: background 0.25s;
     }
 
     .display .expression {
       font-size: 14px;
-      color: #8899aa;
+      color: var(--color-muted);
       min-height: 20px;
       word-break: break-all;
+      transition: color 0.25s;
     }
 
     .display .value {
       font-size: 36px;
       font-weight: 300;
-      color: #ffffff;
+      color: var(--color-display-text);
       word-break: break-all;
+      transition: color 0.25s;
     }
 
     .buttons {
@@ -70,7 +217,7 @@
       border: none;
       border-radius: 10px;
       cursor: pointer;
-      transition: background 0.15s, transform 0.1s;
+      transition: background 0.15s, transform 0.1s, color 0.25s;
       font-family: inherit;
     }
 
@@ -79,49 +226,49 @@
     }
 
     .btn-number {
-      background: #1a1a3e;
-      color: #ffffff;
+      background: var(--color-btn-number-bg);
+      color: var(--color-btn-number-text);
     }
 
     .btn-number:hover {
-      background: #2a2a5e;
+      background: var(--color-btn-number-hover);
     }
 
     .btn-operator {
-      background: #e94560;
-      color: #ffffff;
+      background: var(--color-btn-operator-bg);
+      color: var(--color-btn-text);
     }
 
     .btn-operator:hover {
-      background: #ff6b81;
+      background: var(--color-btn-operator-hover);
     }
 
     .btn-clear {
-      background: #533483;
-      color: #ffffff;
+      background: var(--color-btn-clear-bg);
+      color: var(--color-btn-text);
     }
 
     .btn-clear:hover {
-      background: #7044a3;
+      background: var(--color-btn-clear-hover);
     }
 
     .btn-utility {
-      background: #533483;
-      color: #ffffff;
+      background: var(--color-btn-utility-bg);
+      color: var(--color-btn-text);
     }
 
     .btn-utility:hover {
-      background: #7044a3;
+      background: var(--color-btn-utility-hover);
     }
 
     .btn-equals {
-      background: #0f9b58;
-      color: #ffffff;
+      background: var(--color-btn-equals-bg);
+      color: var(--color-btn-text);
       grid-column: span 4;
     }
 
     .btn-equals:hover {
-      background: #12b866;
+      background: var(--color-btn-equals-hover);
     }
 
     .btn-zero {
@@ -130,10 +277,11 @@
 
     /* History panel */
     .history-panel {
-      background: #16213e;
+      background: var(--color-panel-bg);
       border-radius: 16px;
       padding: 16px 20px;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+      box-shadow: 0 20px 60px var(--color-shadow);
+      transition: background 0.25s, box-shadow 0.25s;
     }
 
     .history-header {
@@ -145,17 +293,18 @@
 
     .history-title {
       font-size: 14px;
-      color: #8899aa;
+      color: var(--color-muted);
       font-weight: 500;
       text-transform: uppercase;
       letter-spacing: 0.05em;
+      transition: color 0.25s;
     }
 
     .btn-clear-history {
       padding: 4px 12px;
       font-size: 12px;
-      background: #533483;
-      color: #ffffff;
+      background: var(--color-btn-utility-bg);
+      color: var(--color-btn-text);
       border: none;
       border-radius: 6px;
       cursor: pointer;
@@ -164,7 +313,7 @@
     }
 
     .btn-clear-history:hover {
-      background: #7044a3;
+      background: var(--color-btn-utility-hover);
     }
 
     .history-list {
@@ -178,19 +327,22 @@
       justify-content: space-between;
       align-items: center;
       padding: 8px 12px;
-      background: #0f3460;
+      background: var(--color-history-item-bg);
       border-radius: 8px;
+      transition: background 0.25s;
     }
 
     .history-expression {
       font-size: 13px;
-      color: #8899aa;
+      color: var(--color-muted);
+      transition: color 0.25s;
     }
 
     .history-result {
       font-size: 15px;
-      color: #ffffff;
+      color: var(--color-display-text);
       font-weight: 500;
+      transition: color 0.25s;
     }
 
     .history-right {
@@ -201,20 +353,63 @@
 
     .history-percentage {
       font-size: 12px;
-      color: #8899aa;
+      color: var(--color-muted);
+      transition: color 0.25s;
     }
 
     .history-empty {
       text-align: center;
-      color: #8899aa;
+      color: var(--color-muted);
       font-size: 13px;
       padding: 10px 0;
+      transition: color 0.25s;
     }
   </style>
 </head>
-<body>
+<body data-theme="dark">
   <div class="wrapper">
     <div class="calculator" data-testid="calculator">
+      <div class="theme-switcher" data-testid="theme-switcher"
+           role="group" aria-label="Theme">
+        <span class="theme-switcher-label" aria-hidden="true">Theme</span>
+        <button
+          class="theme-swatch theme-swatch-dark active"
+          data-testid="theme-btn-dark"
+          data-theme-name="dark"
+          title="Dark"
+          aria-label="Dark theme"
+          aria-pressed="false"
+          onclick="setTheme('dark')"
+        ></button>
+        <button
+          class="theme-swatch theme-swatch-light"
+          data-testid="theme-btn-light"
+          data-theme-name="light"
+          title="Light"
+          aria-label="Light theme"
+          aria-pressed="false"
+          onclick="setTheme('light')"
+        ></button>
+        <button
+          class="theme-swatch theme-swatch-contrast"
+          data-testid="theme-btn-contrast"
+          data-theme-name="contrast"
+          title="High Contrast"
+          aria-label="High Contrast theme"
+          aria-pressed="false"
+          onclick="setTheme('contrast')"
+        ></button>
+        <button
+          class="theme-swatch theme-swatch-solarized"
+          data-testid="theme-btn-solarized"
+          data-theme-name="solarized"
+          title="Solarized"
+          aria-label="Solarized theme"
+          aria-pressed="false"
+          onclick="setTheme('solarized')"
+        ></button>
+      </div>
+
       <div class="display" data-testid="display">
         <div class="expression" data-testid="expression"></div>
         <div class="value" data-testid="value">0</div>
@@ -429,6 +624,28 @@
       }
       updateDisplay();
     }
+
+    // ── Theme management ──
+    const THEME_STORAGE_KEY = 'calculator-theme';
+    const VALID_THEMES = ['dark', 'light', 'contrast', 'solarized'];
+
+    function setTheme(theme) {
+      if (!VALID_THEMES.includes(theme)) theme = 'dark';
+      document.body.setAttribute('data-theme', theme);
+      try { localStorage.setItem(THEME_STORAGE_KEY, theme); } catch (e) {}
+      document.querySelectorAll('.theme-swatch').forEach(function(btn) {
+        const isActive = btn.dataset.themeName === theme;
+        btn.classList.toggle('active', isActive);
+        btn.setAttribute('aria-pressed', String(isActive));
+      });
+    }
+
+    // Load saved theme on startup
+    (function() {
+      var saved;
+      try { saved = localStorage.getItem(THEME_STORAGE_KEY); } catch (e) {}
+      setTheme(saved || 'dark');
+    })();
 
     // Keyboard support
     document.addEventListener('keydown', function(e) {

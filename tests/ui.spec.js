@@ -450,4 +450,96 @@ test.describe("Calculator UI", () => {
       await expect(page.getByTestId("history-percentage-1")).toHaveText("0%");
     });
   });
+
+  // Theme customization tests
+  test.describe("Theme customization", () => {
+    test("theme switcher is visible", async ({ page }) => {
+      await expect(page.getByTestId("theme-switcher")).toBeVisible();
+    });
+
+    test("all four theme buttons are visible", async ({ page }) => {
+      await expect(page.getByTestId("theme-btn-dark")).toBeVisible();
+      await expect(page.getByTestId("theme-btn-light")).toBeVisible();
+      await expect(page.getByTestId("theme-btn-contrast")).toBeVisible();
+      await expect(page.getByTestId("theme-btn-solarized")).toBeVisible();
+    });
+
+    test("dark theme is active by default", async ({ page }) => {
+      await expect(page.locator("body")).toHaveAttribute("data-theme", "dark");
+      await expect(page.getByTestId("theme-btn-dark")).toHaveClass(/active/);
+    });
+
+    test("clicking light theme sets data-theme to light", async ({ page }) => {
+      await page.getByTestId("theme-btn-light").click();
+      await expect(page.locator("body")).toHaveAttribute("data-theme", "light");
+    });
+
+    test("clicking contrast theme sets data-theme to contrast", async ({ page }) => {
+      await page.getByTestId("theme-btn-contrast").click();
+      await expect(page.locator("body")).toHaveAttribute("data-theme", "contrast");
+    });
+
+    test("clicking solarized theme sets data-theme to solarized", async ({ page }) => {
+      await page.getByTestId("theme-btn-solarized").click();
+      await expect(page.locator("body")).toHaveAttribute("data-theme", "solarized");
+    });
+
+    test("active class moves to the selected theme swatch", async ({ page }) => {
+      await page.getByTestId("theme-btn-light").click();
+      await expect(page.getByTestId("theme-btn-light")).toHaveClass(/active/);
+      await expect(page.getByTestId("theme-btn-dark")).not.toHaveClass(/active/);
+
+      await page.getByTestId("theme-btn-solarized").click();
+      await expect(page.getByTestId("theme-btn-solarized")).toHaveClass(/active/);
+      await expect(page.getByTestId("theme-btn-light")).not.toHaveClass(/active/);
+    });
+
+    test("selected theme is saved to localStorage", async ({ page }) => {
+      await page.getByTestId("theme-btn-light").click();
+      const stored = await page.evaluate(
+        () => localStorage.getItem("calculator-theme")
+      );
+      expect(stored).toBe("light");
+    });
+
+    test("theme persists after page reload", async ({ page }) => {
+      await page.getByTestId("theme-btn-solarized").click();
+      await page.reload();
+      await expect(page.locator("body")).toHaveAttribute("data-theme", "solarized");
+      await expect(page.getByTestId("theme-btn-solarized")).toHaveClass(/active/);
+    });
+
+    test("calculator remains functional after theme change", async ({ page }) => {
+      await page.getByTestId("theme-btn-light").click();
+      await page.getByTestId("btn-4").click();
+      await page.getByTestId("btn-add").click();
+      await page.getByTestId("btn-3").click();
+      await page.getByTestId("btn-equals").click();
+      await expect(page.getByTestId("value")).toHaveText("7");
+    });
+
+    test("each theme swatch has an aria-label", async ({ page }) => {
+      await expect(page.getByTestId("theme-btn-dark")).toHaveAttribute("aria-label", "Dark theme");
+      await expect(page.getByTestId("theme-btn-light")).toHaveAttribute("aria-label", "Light theme");
+      await expect(page.getByTestId("theme-btn-contrast")).toHaveAttribute("aria-label", "High Contrast theme");
+      await expect(page.getByTestId("theme-btn-solarized")).toHaveAttribute("aria-label", "Solarized theme");
+    });
+
+    test("dark theme swatch has aria-pressed true by default", async ({ page }) => {
+      await expect(page.getByTestId("theme-btn-dark")).toHaveAttribute("aria-pressed", "true");
+      await expect(page.getByTestId("theme-btn-light")).toHaveAttribute("aria-pressed", "false");
+      await expect(page.getByTestId("theme-btn-contrast")).toHaveAttribute("aria-pressed", "false");
+      await expect(page.getByTestId("theme-btn-solarized")).toHaveAttribute("aria-pressed", "false");
+    });
+
+    test("aria-pressed updates when theme changes", async ({ page }) => {
+      await page.getByTestId("theme-btn-light").click();
+      await expect(page.getByTestId("theme-btn-light")).toHaveAttribute("aria-pressed", "true");
+      await expect(page.getByTestId("theme-btn-dark")).toHaveAttribute("aria-pressed", "false");
+
+      await page.getByTestId("theme-btn-solarized").click();
+      await expect(page.getByTestId("theme-btn-solarized")).toHaveAttribute("aria-pressed", "true");
+      await expect(page.getByTestId("theme-btn-light")).toHaveAttribute("aria-pressed", "false");
+    });
+  });
 });
