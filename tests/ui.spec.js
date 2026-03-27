@@ -450,4 +450,400 @@ test.describe("Calculator UI", () => {
       await expect(page.getByTestId("history-percentage-1")).toHaveText("0%");
     });
   });
+
+  // Theme switcher tests
+  test.describe("Theme Switcher", () => {
+    // Emulate dark color scheme so theme defaults are consistent across all theme tests
+    test.use({ colorScheme: "dark" });
+
+    test("theme switcher is visible", async ({ page }) => {
+      await expect(page.getByTestId("theme-switcher")).toBeVisible();
+    });
+
+    test("all four theme buttons are visible", async ({ page }) => {
+      await expect(page.getByTestId("theme-btn-dark")).toBeVisible();
+      await expect(page.getByTestId("theme-btn-light")).toBeVisible();
+      await expect(page.getByTestId("theme-btn-ocean")).toBeVisible();
+      await expect(page.getByTestId("theme-btn-sunset")).toBeVisible();
+    });
+
+    test("dark theme button is active by default", async ({ page }) => {
+      await expect(page.getByTestId("theme-btn-dark")).toHaveClass(/active/);
+      await expect(page.locator("body")).toHaveClass(/theme-dark/);
+    });
+
+    test("clicking light theme applies theme-light class to body", async ({ page }) => {
+      await page.getByTestId("theme-btn-light").click();
+      await expect(page.locator("body")).toHaveClass(/theme-light/);
+    });
+
+    test("clicking light theme marks its button as active", async ({ page }) => {
+      await page.getByTestId("theme-btn-light").click();
+      await expect(page.getByTestId("theme-btn-light")).toHaveClass(/active/);
+      await expect(page.getByTestId("theme-btn-dark")).not.toHaveClass(/active/);
+    });
+
+    test("clicking ocean theme applies theme-ocean class to body", async ({ page }) => {
+      await page.getByTestId("theme-btn-ocean").click();
+      await expect(page.locator("body")).toHaveClass(/theme-ocean/);
+    });
+
+    test("clicking ocean theme marks its button as active", async ({ page }) => {
+      await page.getByTestId("theme-btn-ocean").click();
+      await expect(page.getByTestId("theme-btn-ocean")).toHaveClass(/active/);
+      await expect(page.getByTestId("theme-btn-dark")).not.toHaveClass(/active/);
+    });
+
+    test("clicking sunset theme applies theme-sunset class to body", async ({ page }) => {
+      await page.getByTestId("theme-btn-sunset").click();
+      await expect(page.locator("body")).toHaveClass(/theme-sunset/);
+    });
+
+    test("clicking sunset theme marks its button as active", async ({ page }) => {
+      await page.getByTestId("theme-btn-sunset").click();
+      await expect(page.getByTestId("theme-btn-sunset")).toHaveClass(/active/);
+      await expect(page.getByTestId("theme-btn-dark")).not.toHaveClass(/active/);
+    });
+
+    test("switching back to dark removes other theme classes from body", async ({ page }) => {
+      await page.getByTestId("theme-btn-light").click();
+      await expect(page.locator("body")).toHaveClass(/theme-light/);
+      await page.getByTestId("theme-btn-dark").click();
+      await expect(page.locator("body")).not.toHaveClass(/theme-light/);
+      await expect(page.locator("body")).toHaveClass(/theme-dark/);
+      await expect(page.getByTestId("theme-btn-dark")).toHaveClass(/active/);
+    });
+
+    test("only one theme button is active at a time", async ({ page }) => {
+      await page.getByTestId("theme-btn-ocean").click();
+      const activeDots = await page.locator(".theme-dot.active").count();
+      expect(activeDots).toBe(1);
+    });
+
+    test("theme choice is saved to localStorage", async ({ page }) => {
+      await page.getByTestId("theme-btn-ocean").click();
+      const stored = await page.evaluate(() => localStorage.getItem("calc-theme"));
+      expect(stored).toBe("ocean");
+    });
+
+    test("saved theme is restored after page reload", async ({ page }) => {
+      await page.getByTestId("theme-btn-sunset").click();
+      await page.reload();
+      await expect(page.locator("body")).toHaveClass(/theme-sunset/);
+      await expect(page.getByTestId("theme-btn-sunset")).toHaveClass(/active/);
+    });
+
+    test("calculator still works correctly after switching theme", async ({ page }) => {
+      await page.getByTestId("theme-btn-light").click();
+      await page.getByTestId("btn-4").click();
+      await page.getByTestId("btn-add").click();
+      await page.getByTestId("btn-3").click();
+      await page.getByTestId("btn-equals").click();
+      await expect(page.getByTestId("value")).toHaveText("7");
+    });
+
+    // prefers-color-scheme default tests
+    test.describe("System color scheme preference", () => {
+      test("defaults to light theme when system prefers light and no saved theme", async ({ page }) => {
+        // Override to light color scheme, clear storage, reload so JS re-runs with light preference
+        await page.emulateMedia({ colorScheme: "light" });
+        await page.evaluate(() => localStorage.clear());
+        await page.reload();
+        await expect(page.getByTestId("theme-btn-light")).toHaveClass(/active/);
+        await expect(page.locator("body")).toHaveClass(/theme-light/);
+      });
+
+      test("defaults to dark theme when system prefers dark and no saved theme", async ({ page }) => {
+        // Already using dark color scheme from parent test.use; clear storage and reload
+        await page.evaluate(() => localStorage.clear());
+        await page.reload();
+        await expect(page.getByTestId("theme-btn-dark")).toHaveClass(/active/);
+        await expect(page.locator("body")).toHaveClass(/theme-dark/);
+      });
+
+      test("saved theme overrides system color scheme preference", async ({ page }) => {
+        // Even with dark system preference, a saved theme should take precedence
+        await page.evaluate(() => localStorage.setItem("calc-theme", "ocean"));
+        await page.reload();
+        await expect(page.getByTestId("theme-btn-ocean")).toHaveClass(/active/);
+        await expect(page.locator("body")).toHaveClass(/theme-ocean/);
+      });
+    });
+
+    // Keyboard navigation tests
+    test.describe("Keyboard navigation", () => {
+      test("theme dots container has radiogroup role", async ({ page }) => {
+        await expect(page.locator(".theme-dots")).toHaveAttribute("role", "radiogroup");
+      });
+
+      test("theme dot buttons have radio role and aria-checked attributes", async ({ page }) => {
+        await expect(page.getByTestId("theme-btn-dark")).toHaveAttribute("role", "radio");
+        await expect(page.getByTestId("theme-btn-dark")).toHaveAttribute("aria-checked", "true");
+        await expect(page.getByTestId("theme-btn-light")).toHaveAttribute("aria-checked", "false");
+        await expect(page.getByTestId("theme-btn-ocean")).toHaveAttribute("aria-checked", "false");
+        await expect(page.getByTestId("theme-btn-sunset")).toHaveAttribute("aria-checked", "false");
+      });
+
+      test("clicking a theme updates aria-checked correctly", async ({ page }) => {
+        await page.getByTestId("theme-btn-ocean").click();
+        await expect(page.getByTestId("theme-btn-ocean")).toHaveAttribute("aria-checked", "true");
+        await expect(page.getByTestId("theme-btn-dark")).toHaveAttribute("aria-checked", "false");
+      });
+
+      test("ArrowRight moves to next theme", async ({ page }) => {
+        // Dark is active; ArrowRight should move to light
+        await page.getByTestId("theme-btn-dark").focus();
+        await page.keyboard.press("ArrowRight");
+        await expect(page.getByTestId("theme-btn-light")).toHaveClass(/active/);
+        await expect(page.locator("body")).toHaveClass(/theme-light/);
+      });
+
+      test("ArrowLeft moves to previous theme", async ({ page }) => {
+        // Switch to light first, then ArrowLeft should move back to dark
+        await page.getByTestId("theme-btn-light").click();
+        await page.getByTestId("theme-btn-light").focus();
+        await page.keyboard.press("ArrowLeft");
+        await expect(page.getByTestId("theme-btn-dark")).toHaveClass(/active/);
+        await expect(page.locator("body")).toHaveClass(/theme-dark/);
+      });
+
+      test("ArrowRight wraps around from last theme to first", async ({ page }) => {
+        await page.getByTestId("theme-btn-sunset").click();
+        await page.getByTestId("theme-btn-sunset").focus();
+        await page.keyboard.press("ArrowRight");
+        await expect(page.getByTestId("theme-btn-dark")).toHaveClass(/active/);
+      });
+
+      test("ArrowLeft wraps around from first theme to last", async ({ page }) => {
+        // Dark is first; ArrowLeft should wrap to sunset (last)
+        await page.getByTestId("theme-btn-dark").focus();
+        await page.keyboard.press("ArrowLeft");
+        await expect(page.getByTestId("theme-btn-sunset")).toHaveClass(/active/);
+      });
+
+      test("ArrowDown moves to next theme", async ({ page }) => {
+        await page.getByTestId("theme-btn-dark").focus();
+        await page.keyboard.press("ArrowDown");
+        await expect(page.getByTestId("theme-btn-light")).toHaveClass(/active/);
+      });
+
+      test("ArrowUp moves to previous theme", async ({ page }) => {
+        await page.getByTestId("theme-btn-light").click();
+        await page.getByTestId("theme-btn-light").focus();
+        await page.keyboard.press("ArrowUp");
+        await expect(page.getByTestId("theme-btn-dark")).toHaveClass(/active/);
+      });
+    });
+  });
+
+  // Font Size Switcher tests
+  test.describe("Font Size Switcher", () => {
+    test.beforeEach(async ({ page }) => {
+      // Start each test with a clean font-size key so stored value never bleeds between tests
+      await page.evaluate(() => localStorage.removeItem("calc-font-size"));
+      await page.reload();
+    });
+
+    // --- Visibility and structure ---
+
+    test("font size switcher is visible", async ({ page }) => {
+      await expect(page.getByTestId("font-size-switcher")).toBeVisible();
+    });
+
+    test("all three font size buttons are visible", async ({ page }) => {
+      await expect(page.getByTestId("font-size-btn-small")).toBeVisible();
+      await expect(page.getByTestId("font-size-btn-medium")).toBeVisible();
+      await expect(page.getByTestId("font-size-btn-large")).toBeVisible();
+    });
+
+    test("font size options container has radiogroup role", async ({ page }) => {
+      await expect(page.locator(".font-size-options")).toHaveAttribute("role", "radiogroup");
+    });
+
+    test("font size buttons have radio role", async ({ page }) => {
+      await expect(page.getByTestId("font-size-btn-small")).toHaveAttribute("role", "radio");
+      await expect(page.getByTestId("font-size-btn-medium")).toHaveAttribute("role", "radio");
+      await expect(page.getByTestId("font-size-btn-large")).toHaveAttribute("role", "radio");
+    });
+
+    // --- Default state ---
+
+    test("medium is the default active font size", async ({ page }) => {
+      await expect(page.getByTestId("font-size-btn-medium")).toHaveClass(/active/);
+      await expect(page.locator("body")).toHaveClass(/font-size-medium/);
+    });
+
+    test("medium button has aria-checked true by default", async ({ page }) => {
+      await expect(page.getByTestId("font-size-btn-medium")).toHaveAttribute("aria-checked", "true");
+      await expect(page.getByTestId("font-size-btn-small")).toHaveAttribute("aria-checked", "false");
+      await expect(page.getByTestId("font-size-btn-large")).toHaveAttribute("aria-checked", "false");
+    });
+
+    // --- Clicking ---
+
+    test("clicking small applies font-size-small class to body", async ({ page }) => {
+      await page.getByTestId("font-size-btn-small").click();
+      await expect(page.locator("body")).toHaveClass(/font-size-small/);
+    });
+
+    test("clicking small marks its button as active and deactivates others", async ({ page }) => {
+      await page.getByTestId("font-size-btn-small").click();
+      await expect(page.getByTestId("font-size-btn-small")).toHaveClass(/active/);
+      await expect(page.getByTestId("font-size-btn-medium")).not.toHaveClass(/active/);
+      await expect(page.getByTestId("font-size-btn-large")).not.toHaveClass(/active/);
+    });
+
+    test("clicking large applies font-size-large class to body", async ({ page }) => {
+      await page.getByTestId("font-size-btn-large").click();
+      await expect(page.locator("body")).toHaveClass(/font-size-large/);
+    });
+
+    test("clicking large marks its button as active and deactivates others", async ({ page }) => {
+      await page.getByTestId("font-size-btn-large").click();
+      await expect(page.getByTestId("font-size-btn-large")).toHaveClass(/active/);
+      await expect(page.getByTestId("font-size-btn-medium")).not.toHaveClass(/active/);
+      await expect(page.getByTestId("font-size-btn-small")).not.toHaveClass(/active/);
+    });
+
+    test("only one font size button is active at a time", async ({ page }) => {
+      await page.getByTestId("font-size-btn-large").click();
+      const activeBtns = await page.locator(".font-size-btn.active").count();
+      expect(activeBtns).toBe(1);
+    });
+
+    test("clicking a font size updates aria-checked correctly", async ({ page }) => {
+      await page.getByTestId("font-size-btn-large").click();
+      await expect(page.getByTestId("font-size-btn-large")).toHaveAttribute("aria-checked", "true");
+      await expect(page.getByTestId("font-size-btn-medium")).toHaveAttribute("aria-checked", "false");
+      await expect(page.getByTestId("font-size-btn-small")).toHaveAttribute("aria-checked", "false");
+    });
+
+    // --- CSS custom property values ---
+
+    test("small size sets --display-font-size to 28px", async ({ page }) => {
+      await page.getByTestId("font-size-btn-small").click();
+      const value = await page.evaluate(() =>
+        getComputedStyle(document.body).getPropertyValue("--display-font-size").trim()
+      );
+      expect(value).toBe("28px");
+    });
+
+    test("medium size sets --display-font-size to 36px", async ({ page }) => {
+      const value = await page.evaluate(() =>
+        getComputedStyle(document.body).getPropertyValue("--display-font-size").trim()
+      );
+      expect(value).toBe("36px");
+    });
+
+    test("large size sets --display-font-size to 44px", async ({ page }) => {
+      await page.getByTestId("font-size-btn-large").click();
+      const value = await page.evaluate(() =>
+        getComputedStyle(document.body).getPropertyValue("--display-font-size").trim()
+      );
+      expect(value).toBe("44px");
+    });
+
+    test("small size sets --btn-font-size to 15px", async ({ page }) => {
+      await page.getByTestId("font-size-btn-small").click();
+      const value = await page.evaluate(() =>
+        getComputedStyle(document.body).getPropertyValue("--btn-font-size").trim()
+      );
+      expect(value).toBe("15px");
+    });
+
+    test("large size sets --btn-font-size to 21px", async ({ page }) => {
+      await page.getByTestId("font-size-btn-large").click();
+      const value = await page.evaluate(() =>
+        getComputedStyle(document.body).getPropertyValue("--btn-font-size").trim()
+      );
+      expect(value).toBe("21px");
+    });
+
+    // --- localStorage persistence ---
+
+    test("font size choice is saved to localStorage", async ({ page }) => {
+      await page.getByTestId("font-size-btn-large").click();
+      const stored = await page.evaluate(() => localStorage.getItem("calc-font-size"));
+      expect(stored).toBe("large");
+    });
+
+    test("saved font size is restored after page reload", async ({ page }) => {
+      await page.getByTestId("font-size-btn-small").click();
+      await page.reload();
+      await expect(page.locator("body")).toHaveClass(/font-size-small/);
+      await expect(page.getByTestId("font-size-btn-small")).toHaveClass(/active/);
+    });
+
+    test("medium is used when no font size is saved in localStorage", async ({ page }) => {
+      // beforeEach already cleared the key and reloaded
+      await expect(page.locator("body")).toHaveClass(/font-size-medium/);
+    });
+
+    // --- Keyboard navigation (roving tabindex) ---
+
+    test("ArrowRight moves from medium to large", async ({ page }) => {
+      await page.getByTestId("font-size-btn-medium").focus();
+      await page.keyboard.press("ArrowRight");
+      await expect(page.getByTestId("font-size-btn-large")).toHaveClass(/active/);
+      await expect(page.locator("body")).toHaveClass(/font-size-large/);
+    });
+
+    test("ArrowRight moves from small to medium", async ({ page }) => {
+      await page.getByTestId("font-size-btn-small").click();
+      await page.getByTestId("font-size-btn-small").focus();
+      await page.keyboard.press("ArrowRight");
+      await expect(page.getByTestId("font-size-btn-medium")).toHaveClass(/active/);
+    });
+
+    test("ArrowRight wraps from large to small", async ({ page }) => {
+      await page.getByTestId("font-size-btn-large").click();
+      await page.getByTestId("font-size-btn-large").focus();
+      await page.keyboard.press("ArrowRight");
+      await expect(page.getByTestId("font-size-btn-small")).toHaveClass(/active/);
+    });
+
+    test("ArrowLeft moves from medium to small", async ({ page }) => {
+      await page.getByTestId("font-size-btn-medium").focus();
+      await page.keyboard.press("ArrowLeft");
+      await expect(page.getByTestId("font-size-btn-small")).toHaveClass(/active/);
+      await expect(page.locator("body")).toHaveClass(/font-size-small/);
+    });
+
+    test("ArrowLeft wraps from small to large", async ({ page }) => {
+      await page.getByTestId("font-size-btn-small").click();
+      await page.getByTestId("font-size-btn-small").focus();
+      await page.keyboard.press("ArrowLeft");
+      await expect(page.getByTestId("font-size-btn-large")).toHaveClass(/active/);
+    });
+
+    test("ArrowDown moves to next font size", async ({ page }) => {
+      await page.getByTestId("font-size-btn-medium").focus();
+      await page.keyboard.press("ArrowDown");
+      await expect(page.getByTestId("font-size-btn-large")).toHaveClass(/active/);
+    });
+
+    test("ArrowUp moves to previous font size", async ({ page }) => {
+      await page.getByTestId("font-size-btn-medium").focus();
+      await page.keyboard.press("ArrowUp");
+      await expect(page.getByTestId("font-size-btn-small")).toHaveClass(/active/);
+    });
+
+    // --- Non-interference ---
+
+    test("font size and theme are independent", async ({ page }) => {
+      await page.getByTestId("font-size-btn-large").click();
+      await page.getByTestId("theme-btn-ocean").click();
+      await expect(page.locator("body")).toHaveClass(/font-size-large/);
+      await expect(page.locator("body")).toHaveClass(/theme-ocean/);
+    });
+
+    test("calculator still works correctly after changing font size", async ({ page }) => {
+      await page.getByTestId("font-size-btn-large").click();
+      await page.getByTestId("btn-4").click();
+      await page.getByTestId("btn-add").click();
+      await page.getByTestId("btn-3").click();
+      await page.getByTestId("btn-equals").click();
+      await expect(page.getByTestId("value")).toHaveText("7");
+    });
+  });
 });
