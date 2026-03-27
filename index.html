@@ -7,15 +7,117 @@
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
+    /* ── Default (Dark) theme variables ────────────────────── */
+    body {
+      --bg:             #1a1a2e;
+      --calc-bg:        #16213e;
+      --display-bg:     #0f3460;
+      --text:           #e0e0e0;
+      --text-main:      #ffffff;
+      --text-muted:     #8899aa;
+      --btn-num-bg:     #1a1a3e;
+      --btn-num-hover:  #2a2a5e;
+      --btn-num-text:   #ffffff;
+      --btn-op-bg:      #e94560;
+      --btn-op-hover:   #ff6b81;
+      --btn-util-bg:    #533483;
+      --btn-util-hover: #7044a3;
+      --btn-eq-bg:      #0f9b58;
+      --btn-eq-hover:   #12b866;
+    }
+
+    /* ── Dark theme (explicit class for consistency) ────────── */
+    body.theme-dark {
+      --bg:             #1a1a2e;
+      --calc-bg:        #16213e;
+      --display-bg:     #0f3460;
+      --text:           #e0e0e0;
+      --text-main:      #ffffff;
+      --text-muted:     #8899aa;
+      --btn-num-bg:     #1a1a3e;
+      --btn-num-hover:  #2a2a5e;
+      --btn-num-text:   #ffffff;
+      --btn-op-bg:      #e94560;
+      --btn-op-hover:   #ff6b81;
+      --btn-util-bg:    #533483;
+      --btn-util-hover: #7044a3;
+      --btn-eq-bg:      #0f9b58;
+      --btn-eq-hover:   #12b866;
+    }
+
+    /* ── Light theme ───────────────────────────────────────── */
+    body.theme-light {
+      --bg:             #f0f2f5;
+      --calc-bg:        #ffffff;
+      --display-bg:     #e8eaf0;
+      --text:           #333333;
+      --text-main:      #111111;
+      --text-muted:     #888888;
+      --btn-num-bg:     #dde1ea;
+      --btn-num-hover:  #c8cdd8;
+      --btn-num-text:   #333333;
+      --btn-op-bg:      #e94560;
+      --btn-op-hover:   #ff6b81;
+      --btn-util-bg:    #7c4dab;
+      --btn-util-hover: #8f5dc0;
+      --btn-eq-bg:      #0f9b58;
+      --btn-eq-hover:   #12b866;
+    }
+
+    /* ── Ocean theme ───────────────────────────────────────── */
+    body.theme-ocean {
+      --bg:             #0a2a4a;
+      --calc-bg:        #0d3b69;
+      --display-bg:     #072140;
+      --text:           #cce4ff;
+      --text-main:      #ffffff;
+      --text-muted:     #7fafd4;
+      --btn-num-bg:     #0d3b69;
+      --btn-num-hover:  #1a5080;
+      --btn-num-text:   #cce4ff;
+      --btn-op-bg:      #00b4d8;
+      --btn-op-hover:   #48cae4;
+      --btn-util-bg:    #0077b6;
+      --btn-util-hover: #0096c7;
+      --btn-eq-bg:      #06d6a0;
+      --btn-eq-hover:   #0ff0b3;
+    }
+
+    /* ── Sunset theme ──────────────────────────────────────── */
+    body.theme-sunset {
+      --bg:             #2d1b33;
+      --calc-bg:        #3d2545;
+      --display-bg:     #251530;
+      --text:           #ffe0cc;
+      --text-main:      #ffffff;
+      --text-muted:     #cc9966;
+      --btn-num-bg:     #4d3058;
+      --btn-num-hover:  #5d3a6a;
+      --btn-num-text:   #ffe0cc;
+      --btn-op-bg:      #ff6b35;
+      --btn-op-hover:   #ff8c5a;
+      --btn-util-bg:    #9b59b6;
+      --btn-util-hover: #ab69c6;
+      --btn-eq-bg:      #e67e22;
+      --btn-eq-hover:   #f39c12;
+    }
+
+    /* ── Font Size ─────────────────────────────────────────── */
+    body.font-size-small  { --display-font-size: 28px; --btn-font-size: 15px; }
+    body.font-size-medium { --display-font-size: 36px; --btn-font-size: 18px; }
+    body.font-size-large  { --display-font-size: 44px; --btn-font-size: 21px; }
+
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: #1a1a2e;
+      background: var(--bg);
       display: flex;
       justify-content: center;
       align-items: flex-start;
       min-height: 100vh;
-      color: #e0e0e0;
+      color: var(--text);
       padding: 40px 20px;
+      --display-font-size: 36px;
+      --btn-font-size:     18px;
     }
 
     .wrapper {
@@ -26,14 +128,109 @@
     }
 
     .calculator {
-      background: #16213e;
+      background: var(--calc-bg);
       border-radius: 16px;
       padding: 24px;
       box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
     }
 
+    /* ── Theme Switcher ────────────────────────────────────── */
+    .theme-switcher {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .theme-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 500;
+    }
+
+    .theme-dots {
+      display: flex;
+      gap: 8px;
+    }
+
+    .theme-dot {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      cursor: pointer;
+      padding: 0;
+      transition: transform 0.15s, box-shadow 0.15s;
+      outline: none;
+    }
+
+    .theme-dot:hover {
+      transform: scale(1.2);
+    }
+
+    .theme-dot.active {
+      box-shadow: 0 0 0 2px var(--text-main);
+      transform: scale(1.1);
+    }
+
+    .theme-dot-dark   { background: #1a1a2e; }
+    .theme-dot-light  { background: #f0f2f5; border-color: #bbb; }
+    .theme-dot-ocean  { background: #00b4d8; }
+    .theme-dot-sunset { background: #ff6b35; }
+
+    /* ── Font Size Switcher ─────────────────────────────────── */
+    .font-size-switcher {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .font-size-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 500;
+    }
+
+    .font-size-options {
+      display: flex;
+      gap: 8px;
+    }
+
+    .font-size-btn {
+      height: 22px;
+      min-width: 28px;
+      padding: 0 6px;
+      border-radius: 4px;
+      border: 2px solid transparent;
+      background: var(--btn-num-bg);
+      color: var(--text);
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 500;
+      transition: transform 0.15s, box-shadow 0.15s, background 0.15s;
+      outline: none;
+      line-height: 1;
+    }
+
+    .font-size-btn:hover {
+      background: var(--btn-num-hover);
+    }
+
+    .font-size-btn.active {
+      box-shadow: 0 0 0 2px var(--text-main);
+      background: var(--btn-util-bg);
+      color: #ffffff;
+    }
+
+    /* ── Display ───────────────────────────────────────────── */
     .display {
-      background: #0f3460;
+      background: var(--display-bg);
       border-radius: 12px;
       padding: 20px;
       margin-bottom: 20px;
@@ -46,18 +243,19 @@
 
     .display .expression {
       font-size: 14px;
-      color: #8899aa;
+      color: var(--text-muted);
       min-height: 20px;
       word-break: break-all;
     }
 
     .display .value {
-      font-size: 36px;
+      font-size: var(--display-font-size);
       font-weight: 300;
-      color: #ffffff;
+      color: var(--text-main);
       word-break: break-all;
     }
 
+    /* ── Button Grid ───────────────────────────────────────── */
     .buttons {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
@@ -66,7 +264,7 @@
 
     button {
       padding: 18px;
-      font-size: 18px;
+      font-size: var(--btn-font-size);
       border: none;
       border-radius: 10px;
       cursor: pointer;
@@ -79,58 +277,58 @@
     }
 
     .btn-number {
-      background: #1a1a3e;
-      color: #ffffff;
+      background: var(--btn-num-bg);
+      color: var(--btn-num-text);
     }
 
     .btn-number:hover {
-      background: #2a2a5e;
+      background: var(--btn-num-hover);
     }
 
     .btn-operator {
-      background: #e94560;
+      background: var(--btn-op-bg);
       color: #ffffff;
     }
 
     .btn-operator:hover {
-      background: #ff6b81;
+      background: var(--btn-op-hover);
     }
 
     .btn-clear {
-      background: #533483;
+      background: var(--btn-util-bg);
       color: #ffffff;
     }
 
     .btn-clear:hover {
-      background: #7044a3;
+      background: var(--btn-util-hover);
     }
 
     .btn-utility {
-      background: #533483;
+      background: var(--btn-util-bg);
       color: #ffffff;
     }
 
     .btn-utility:hover {
-      background: #7044a3;
+      background: var(--btn-util-hover);
     }
 
     .btn-equals {
-      background: #0f9b58;
+      background: var(--btn-eq-bg);
       color: #ffffff;
       grid-column: span 4;
     }
 
     .btn-equals:hover {
-      background: #12b866;
+      background: var(--btn-eq-hover);
     }
 
     .btn-zero {
       grid-column: span 2;
     }
 
-    /* History panel */
+    /* ── History Panel ─────────────────────────────────────── */
     .history-panel {
-      background: #16213e;
+      background: var(--calc-bg);
       border-radius: 16px;
       padding: 16px 20px;
       box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
@@ -145,7 +343,7 @@
 
     .history-title {
       font-size: 14px;
-      color: #8899aa;
+      color: var(--text-muted);
       font-weight: 500;
       text-transform: uppercase;
       letter-spacing: 0.05em;
@@ -154,7 +352,7 @@
     .btn-clear-history {
       padding: 4px 12px;
       font-size: 12px;
-      background: #533483;
+      background: var(--btn-util-bg);
       color: #ffffff;
       border: none;
       border-radius: 6px;
@@ -164,7 +362,7 @@
     }
 
     .btn-clear-history:hover {
-      background: #7044a3;
+      background: var(--btn-util-hover);
     }
 
     .history-list {
@@ -178,18 +376,18 @@
       justify-content: space-between;
       align-items: center;
       padding: 8px 12px;
-      background: #0f3460;
+      background: var(--display-bg);
       border-radius: 8px;
     }
 
     .history-expression {
       font-size: 13px;
-      color: #8899aa;
+      color: var(--text-muted);
     }
 
     .history-result {
       font-size: 15px;
-      color: #ffffff;
+      color: var(--text-main);
       font-weight: 500;
     }
 
@@ -201,12 +399,12 @@
 
     .history-percentage {
       font-size: 12px;
-      color: #8899aa;
+      color: var(--text-muted);
     }
 
     .history-empty {
       text-align: center;
-      color: #8899aa;
+      color: var(--text-muted);
       font-size: 13px;
       padding: 10px 0;
     }
@@ -215,6 +413,27 @@
 <body>
   <div class="wrapper">
     <div class="calculator" data-testid="calculator">
+      <!-- Theme Switcher -->
+      <div class="theme-switcher" data-testid="theme-switcher">
+        <span class="theme-label">Theme</span>
+        <div class="theme-dots" role="radiogroup" aria-label="Color theme">
+          <button class="theme-dot theme-dot-dark" data-theme="dark" data-testid="theme-btn-dark" title="Dark" aria-label="Dark theme" role="radio" aria-checked="false" tabindex="0"></button>
+          <button class="theme-dot theme-dot-light" data-theme="light" data-testid="theme-btn-light" title="Light" aria-label="Light theme" role="radio" aria-checked="false" tabindex="-1"></button>
+          <button class="theme-dot theme-dot-ocean" data-theme="ocean" data-testid="theme-btn-ocean" title="Ocean" aria-label="Ocean theme" role="radio" aria-checked="false" tabindex="-1"></button>
+          <button class="theme-dot theme-dot-sunset" data-theme="sunset" data-testid="theme-btn-sunset" title="Sunset" aria-label="Sunset theme" role="radio" aria-checked="false" tabindex="-1"></button>
+        </div>
+      </div>
+
+      <!-- Font Size Switcher -->
+      <div class="font-size-switcher" data-testid="font-size-switcher">
+        <span class="font-size-label">Size</span>
+        <div class="font-size-options" role="radiogroup" aria-label="Font size">
+          <button class="font-size-btn" data-size="small"  data-testid="font-size-btn-small"  title="Small"  aria-label="Small font size"  role="radio" aria-checked="false" tabindex="-1">S</button>
+          <button class="font-size-btn" data-size="medium" data-testid="font-size-btn-medium" title="Medium" aria-label="Medium font size" role="radio" aria-checked="true"  tabindex="0">M</button>
+          <button class="font-size-btn" data-size="large"  data-testid="font-size-btn-large"  title="Large"  aria-label="Large font size"  role="radio" aria-checked="false" tabindex="-1">L</button>
+        </div>
+      </div>
+
       <div class="display" data-testid="display">
         <div class="expression" data-testid="expression"></div>
         <div class="value" data-testid="value">0</div>
@@ -259,6 +478,92 @@
   </div>
 
   <script>
+    // ── Theme Management ──────────────────────────────────────
+    const THEMES = ['dark', 'light', 'ocean', 'sunset'];
+    const THEME_KEY = 'calc-theme';
+
+    function setTheme(name) {
+      if (!THEMES.includes(name)) name = 'dark';
+      // Remove all theme classes, then apply the chosen one (all themes use an explicit class)
+      document.body.classList.remove(...THEMES.map(t => 'theme-' + t));
+      document.body.classList.add('theme-' + name);
+      localStorage.setItem(THEME_KEY, name);
+      // Update active indicator, ARIA checked state, and roving tabindex on dot buttons
+      document.querySelectorAll('.theme-dot').forEach(function(btn) {
+        const isActive = btn.dataset.theme === name;
+        btn.classList.toggle('active', isActive);
+        btn.setAttribute('aria-checked', isActive ? 'true' : 'false');
+        btn.setAttribute('tabindex', isActive ? '0' : '-1');
+      });
+    }
+
+    // Attach click handlers to theme dot buttons
+    document.querySelectorAll('.theme-dot').forEach(function(btn) {
+      btn.addEventListener('click', function() { setTheme(btn.dataset.theme); });
+    });
+
+    // Arrow-key navigation within the radiogroup (roving tabindex pattern)
+    document.querySelector('.theme-dots').addEventListener('keydown', function(e) {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft' &&
+          e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+      e.preventDefault();
+      const dots = Array.from(document.querySelectorAll('.theme-dot'));
+      const currentIndex = dots.findIndex(function(btn) {
+        return btn.getAttribute('aria-checked') === 'true';
+      });
+      const dir = (e.key === 'ArrowRight' || e.key === 'ArrowDown') ? 1 : -1;
+      const newIndex = (currentIndex + dir + dots.length) % dots.length;
+      setTheme(dots[newIndex].dataset.theme);
+      dots[newIndex].focus();
+    });
+
+    // Restore saved theme, respecting system color scheme preference for first-time visitors
+    const savedTheme = localStorage.getItem(THEME_KEY);
+    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    setTheme(savedTheme || (systemPrefersDark ? 'dark' : 'light'));
+
+    // ── Font Size Management ──────────────────────────────────
+    const FONT_SIZES = ['small', 'medium', 'large'];
+    const FONT_SIZE_KEY = 'calc-font-size';
+
+    function setFontSize(size) {
+      if (!FONT_SIZES.includes(size)) size = 'medium';
+      document.body.classList.remove(...FONT_SIZES.map(function(s) { return 'font-size-' + s; }));
+      document.body.classList.add('font-size-' + size);
+      localStorage.setItem(FONT_SIZE_KEY, size);
+      document.querySelectorAll('.font-size-btn').forEach(function(btn) {
+        var isActive = btn.dataset.size === size;
+        btn.classList.toggle('active', isActive);
+        btn.setAttribute('aria-checked', isActive ? 'true' : 'false');
+        btn.setAttribute('tabindex', isActive ? '0' : '-1');
+      });
+    }
+
+    // Attach click handlers to font size buttons
+    document.querySelectorAll('.font-size-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() { setFontSize(btn.dataset.size); });
+    });
+
+    // Arrow-key navigation within the font size radiogroup (roving tabindex pattern)
+    document.querySelector('.font-size-options').addEventListener('keydown', function(e) {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft' &&
+          e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+      e.preventDefault();
+      var btns = Array.from(document.querySelectorAll('.font-size-btn'));
+      var currentIndex = btns.findIndex(function(btn) {
+        return btn.getAttribute('aria-checked') === 'true';
+      });
+      var dir = (e.key === 'ArrowRight' || e.key === 'ArrowDown') ? 1 : -1;
+      var newIndex = (currentIndex + dir + btns.length) % btns.length;
+      setFontSize(btns[newIndex].dataset.size);
+      btns[newIndex].focus();
+    });
+
+    // Restore saved font size on page load (default: medium)
+    var savedFontSize = localStorage.getItem(FONT_SIZE_KEY);
+    setFontSize(savedFontSize || 'medium');
+
+    // ── Calculator State ──────────────────────────────────────
     let current = '0';
     let previous = '';
     let operator = '';
