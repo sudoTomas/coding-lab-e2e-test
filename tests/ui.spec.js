@@ -206,6 +206,111 @@ test.describe("Calculator UI", () => {
     });
   });
 
+  // Scientific notation toggle tests
+  test.describe("Scientific notation toggle (SCI)", () => {
+    test("SCI button is visible", async ({ page }) => {
+      await expect(page.getByTestId("btn-sci")).toBeVisible();
+    });
+
+    test("SCI button converts display to scientific notation", async ({ page }) => {
+      // Enter 12345
+      await page.getByTestId("btn-1").click();
+      await page.getByTestId("btn-2").click();
+      await page.getByTestId("btn-3").click();
+      await page.getByTestId("btn-4").click();
+      await page.getByTestId("btn-5").click();
+      await expect(page.getByTestId("value")).toHaveText("12345");
+
+      // Toggle SCI on
+      await page.getByTestId("btn-sci").click();
+      await expect(page.getByTestId("value")).toHaveText("1.2345e4");
+    });
+
+    test("SCI button toggles back to normal notation", async ({ page }) => {
+      await page.getByTestId("btn-1").click();
+      await page.getByTestId("btn-2").click();
+      await page.getByTestId("btn-3").click();
+      await page.getByTestId("btn-4").click();
+      await page.getByTestId("btn-5").click();
+
+      // Toggle SCI on then off
+      await page.getByTestId("btn-sci").click();
+      await expect(page.getByTestId("value")).toHaveText("1.2345e4");
+      await page.getByTestId("btn-sci").click();
+      await expect(page.getByTestId("value")).toHaveText("12345");
+    });
+
+    test("SCI mode shows calculation result in scientific notation", async ({ page }) => {
+      // Toggle SCI on first
+      await page.getByTestId("btn-sci").click();
+
+      // 100 × 200 = 20000 → shown as 2e4
+      await page.getByTestId("btn-1").click();
+      await page.getByTestId("btn-0").click();
+      await page.getByTestId("btn-0").click();
+      await page.getByTestId("btn-multiply").click();
+      await page.getByTestId("btn-2").click();
+      await page.getByTestId("btn-0").click();
+      await page.getByTestId("btn-0").click();
+      await page.getByTestId("btn-equals").click();
+      await expect(page.getByTestId("value")).toHaveText("2e4");
+    });
+
+    test("SCI mode displays zero unchanged", async ({ page }) => {
+      await page.getByTestId("btn-sci").click();
+      await expect(page.getByTestId("value")).toHaveText("0");
+    });
+
+    test("normal mode is restored and shows plain number after toggling off", async ({ page }) => {
+      // Turn SCI on, do a calculation, turn SCI off
+      await page.getByTestId("btn-sci").click();
+      await page.getByTestId("btn-1").click();
+      await page.getByTestId("btn-0").click();
+      await page.getByTestId("btn-0").click();
+      await page.getByTestId("btn-0").click();
+      await expect(page.getByTestId("value")).toHaveText("1e3");
+      await page.getByTestId("btn-sci").click();
+      await expect(page.getByTestId("value")).toHaveText("1000");
+    });
+
+    test("SCI button gets active class when toggled on and loses it when toggled off", async ({ page }) => {
+      await page.getByTestId("btn-sci").click();
+      await expect(page.getByTestId("btn-sci")).toHaveClass(/btn-sci-active/);
+      await page.getByTestId("btn-sci").click();
+      await expect(page.getByTestId("btn-sci")).not.toHaveClass(/btn-sci-active/);
+    });
+
+    test("SCI mode displays single-digit number with e0 exponent", async ({ page }) => {
+      // Single digits < 10 are shown as Ne0 in SCI mode (e.g. 5 → 5e0)
+      await page.getByTestId("btn-5").click();
+      await page.getByTestId("btn-sci").click();
+      await expect(page.getByTestId("value")).toHaveText("5e0");
+    });
+
+    test("SCI mode formats negative numbers correctly", async ({ page }) => {
+      // -12345 → -1.2345e4
+      await page.getByTestId("btn-1").click();
+      await page.getByTestId("btn-2").click();
+      await page.getByTestId("btn-3").click();
+      await page.getByTestId("btn-4").click();
+      await page.getByTestId("btn-5").click();
+      await page.getByTestId("btn-sign").click();
+      await page.getByTestId("btn-sci").click();
+      await expect(page.getByTestId("value")).toHaveText("-1.2345e4");
+    });
+
+    test("SCI mode formats sub-unity fractions correctly", async ({ page }) => {
+      // 0.001 → 1e-3
+      await page.getByTestId("btn-0").click();
+      await page.getByTestId("btn-decimal").click();
+      await page.getByTestId("btn-0").click();
+      await page.getByTestId("btn-0").click();
+      await page.getByTestId("btn-1").click();
+      await page.getByTestId("btn-sci").click();
+      await expect(page.getByTestId("value")).toHaveText("1e-3");
+    });
+  });
+
   // History panel tests
   test.describe("History panel", () => {
     test("history panel is visible", async ({ page }) => {

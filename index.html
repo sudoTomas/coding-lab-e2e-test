@@ -128,6 +128,15 @@
       grid-column: span 2;
     }
 
+    .btn-sci-active {
+      background: #e9a020;
+      color: #ffffff;
+    }
+
+    .btn-sci-active:hover {
+      background: #ffb830;
+    }
+
     /* History panel */
     .history-panel {
       background: #16213e;
@@ -243,6 +252,7 @@
         <button class="btn-number btn-zero" data-testid="btn-0" onclick="digit('0')">0</button>
         <button class="btn-number" data-testid="btn-decimal" onclick="decimal()">.</button>
         <button class="btn-utility" data-testid="btn-backspace" onclick="backspace()">⌫</button>
+        <button class="btn-utility" data-testid="btn-sci" onclick="toggleSci()">SCI</button>
         <button class="btn-equals" data-testid="btn-equals" onclick="calculate()">=</button>
       </div>
     </div>
@@ -264,13 +274,28 @@
     let operator = '';
     let resetNext = false;
     let calcHistory = [];
+    let sciMode = false;
 
     const display = document.querySelector('[data-testid="value"]');
     const expression = document.querySelector('[data-testid="expression"]');
     const historyList = document.querySelector('[data-testid="history-list"]');
+    const sciBtn = document.querySelector('[data-testid="btn-sci"]');
+
+    function formatSci(value) {
+      if (value === 'Error') return value;
+      const num = parseFloat(value);
+      if (isNaN(num) || num === 0) return value;
+      return num.toExponential().replace('e+', 'e');
+    }
 
     function updateDisplay() {
-      display.textContent = current;
+      display.textContent = sciMode ? formatSci(current) : current;
+    }
+
+    function toggleSci() {
+      sciMode = !sciMode;
+      sciBtn.classList.toggle('btn-sci-active', sciMode);
+      updateDisplay();
     }
 
     function digit(d) {
