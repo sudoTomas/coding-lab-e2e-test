@@ -449,6 +449,62 @@ test.describe("Calculator UI", () => {
       // Older result (0) → 0% of 10
       await expect(page.getByTestId("history-percentage-1")).toHaveText("0%");
     });
+
+    // Tooltip tests
+    test("tooltip is not visible before hovering history item", async ({ page }) => {
+      await page.getByTestId("btn-4").click();
+      await page.getByTestId("btn-add").click();
+      await page.getByTestId("btn-5").click();
+      await page.getByTestId("btn-equals").click();
+      await expect(page.getByTestId("history-tooltip-0")).not.toBeVisible();
+    });
+
+    test("tooltip shows full expression on hover", async ({ page }) => {
+      await page.getByTestId("btn-4").click();
+      await page.getByTestId("btn-add").click();
+      await page.getByTestId("btn-5").click();
+      await page.getByTestId("btn-equals").click();
+      await page.getByTestId("history-item-0").hover();
+      await expect(page.getByTestId("history-tooltip-0")).toBeVisible();
+      await expect(page.getByTestId("history-tooltip-0")).toContainText("+");
+    });
+
+    test("tooltip contains the same text as the history expression", async ({ page }) => {
+      await page.getByTestId("btn-7").click();
+      await page.getByTestId("btn-multiply").click();
+      await page.getByTestId("btn-3").click();
+      await page.getByTestId("btn-equals").click();
+      const exprText = await page.getByTestId("history-expression-0").textContent();
+      await page.getByTestId("history-item-0").hover();
+      await expect(page.getByTestId("history-tooltip-0")).toHaveText(exprText);
+    });
+
+    test("tooltip works for older history items (index 1)", async ({ page }) => {
+      // First calculation
+      await page.getByTestId("btn-2").click();
+      await page.getByTestId("btn-add").click();
+      await page.getByTestId("btn-3").click();
+      await page.getByTestId("btn-equals").click();
+      // Second calculation pushes the first to index 1
+      await page.getByTestId("btn-7").click();
+      await page.getByTestId("btn-multiply").click();
+      await page.getByTestId("btn-2").click();
+      await page.getByTestId("btn-equals").click();
+
+      const exprText = await page.getByTestId("history-expression-1").textContent();
+      await page.getByTestId("history-item-1").hover();
+      await expect(page.getByTestId("history-tooltip-1")).toBeVisible();
+      await expect(page.getByTestId("history-tooltip-1")).toHaveText(exprText);
+    });
+
+    test("tooltip shows on keyboard focus within history item", async ({ page }) => {
+      await page.getByTestId("btn-6").click();
+      await page.getByTestId("btn-add").click();
+      await page.getByTestId("btn-4").click();
+      await page.getByTestId("btn-equals").click();
+      await page.getByTestId("history-item-0").focus();
+      await expect(page.getByTestId("history-tooltip-0")).toBeVisible();
+    });
   });
 
   // Theme switcher tests
