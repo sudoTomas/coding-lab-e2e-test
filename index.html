@@ -372,6 +372,7 @@
     }
 
     .history-item {
+      position: relative;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -380,9 +381,46 @@
       border-radius: 8px;
     }
 
+    .history-tooltip {
+      display: none;
+      position: absolute;
+      bottom: calc(100% + 6px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.85);
+      color: #ffffff;
+      font-size: 12px;
+      padding: 5px 10px;
+      border-radius: 6px;
+      white-space: normal;
+      max-width: 260px;
+      word-break: break-all;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    .history-tooltip::after {
+      content: '';
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      border: 5px solid transparent;
+      border-top-color: rgba(0, 0, 0, 0.85);
+    }
+
+    .history-item:hover .history-tooltip,
+    .history-item:focus-within .history-tooltip {
+      display: block;
+    }
+
     .history-expression {
       font-size: 13px;
       color: var(--text-muted);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 140px;
     }
 
     .history-result {
@@ -684,6 +722,7 @@
         const div = document.createElement('div');
         div.className = 'history-item';
         div.dataset.testid = `history-item-${i}`;
+        div.tabIndex = 0;
 
         const exprSpan = document.createElement('span');
         exprSpan.className = 'history-expression';
@@ -708,11 +747,21 @@
           }
         }
 
+        const tooltipSpan = document.createElement('span');
+        tooltipSpan.className = 'history-tooltip';
+        tooltipSpan.dataset.testid = `history-tooltip-${i}`;
+        tooltipSpan.id = `history-tooltip-${i}`;
+        tooltipSpan.setAttribute('role', 'tooltip');
+        tooltipSpan.textContent = item.expression;
+
+        div.setAttribute('aria-describedby', `history-tooltip-${i}`);
+
         const rightDiv = document.createElement('div');
         rightDiv.className = 'history-right';
         rightDiv.appendChild(resultSpan);
         rightDiv.appendChild(percentSpan);
 
+        div.appendChild(tooltipSpan);
         div.appendChild(exprSpan);
         div.appendChild(rightDiv);
         historyList.appendChild(div);
