@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Calculator</title>
+  <title>Scientific Calculator</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -22,6 +22,8 @@
       --btn-op-hover:   #ff6b81;
       --btn-util-bg:    #533483;
       --btn-util-hover: #7044a3;
+      --btn-sci-bg:     #0e4d6e;
+      --btn-sci-hover:  #1a6b8e;
       --btn-eq-bg:      #0f9b58;
       --btn-eq-hover:   #12b866;
     }
@@ -41,6 +43,8 @@
       --btn-op-hover:   #ff6b81;
       --btn-util-bg:    #533483;
       --btn-util-hover: #7044a3;
+      --btn-sci-bg:     #0e4d6e;
+      --btn-sci-hover:  #1a6b8e;
       --btn-eq-bg:      #0f9b58;
       --btn-eq-hover:   #12b866;
     }
@@ -60,6 +64,8 @@
       --btn-op-hover:   #ff6b81;
       --btn-util-bg:    #7c4dab;
       --btn-util-hover: #8f5dc0;
+      --btn-sci-bg:     #2471a3;
+      --btn-sci-hover:  #2e86c1;
       --btn-eq-bg:      #0f9b58;
       --btn-eq-hover:   #12b866;
     }
@@ -79,6 +85,8 @@
       --btn-op-hover:   #48cae4;
       --btn-util-bg:    #0077b6;
       --btn-util-hover: #0096c7;
+      --btn-sci-bg:     #005f73;
+      --btn-sci-hover:  #0a7d8e;
       --btn-eq-bg:      #06d6a0;
       --btn-eq-hover:   #0ff0b3;
     }
@@ -98,6 +106,8 @@
       --btn-op-hover:   #ff8c5a;
       --btn-util-bg:    #9b59b6;
       --btn-util-hover: #ab69c6;
+      --btn-sci-bg:     #6c3483;
+      --btn-sci-hover:  #7d3c98;
       --btn-eq-bg:      #e67e22;
       --btn-eq-hover:   #f39c12;
     }
@@ -124,13 +134,13 @@
       display: flex;
       flex-direction: column;
       gap: 16px;
-      width: 320px;
+      width: 360px;
     }
 
     .calculator {
       background: var(--calc-bg);
       border-radius: 16px;
-      padding: 24px;
+      padding: 20px;
       box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
     }
 
@@ -139,7 +149,7 @@
       display: flex;
       align-items: center;
       gap: 10px;
-      margin-bottom: 16px;
+      margin-bottom: 12px;
     }
 
     .theme-label {
@@ -185,7 +195,7 @@
       display: flex;
       align-items: center;
       gap: 10px;
-      margin-bottom: 16px;
+      margin-bottom: 12px;
     }
 
     .font-size-label {
@@ -232,19 +242,28 @@
     .display {
       background: var(--display-bg);
       border-radius: 12px;
-      padding: 20px;
-      margin-bottom: 20px;
+      padding: 16px 20px 20px;
+      margin-bottom: 16px;
       text-align: right;
-      min-height: 80px;
+      min-height: 88px;
       display: flex;
       flex-direction: column;
       justify-content: flex-end;
     }
 
+    .display .angle-mode-indicator {
+      font-size: 10px;
+      color: var(--btn-op-bg);
+      text-align: left;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      margin-bottom: 2px;
+    }
+
     .display .expression {
-      font-size: 14px;
+      font-size: 13px;
       color: var(--text-muted);
-      min-height: 20px;
+      min-height: 18px;
       word-break: break-all;
     }
 
@@ -259,11 +278,11 @@
     .buttons {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 10px;
+      gap: 8px;
     }
 
     button {
-      padding: 18px;
+      padding: 15px 8px;
       font-size: var(--btn-font-size);
       border: none;
       border-radius: 10px;
@@ -310,6 +329,38 @@
 
     .btn-utility:hover {
       background: var(--btn-util-hover);
+    }
+
+    /* Scientific function buttons */
+    .btn-scientific {
+      background: var(--btn-sci-bg);
+      color: #ffffff;
+      font-size: calc(var(--btn-font-size) * 0.82);
+    }
+
+    .btn-scientific:hover {
+      background: var(--btn-sci-hover);
+    }
+
+    /* Angle mode toggle — active state highlights in operator colour */
+    .btn-angle-mode {
+      background: var(--btn-sci-bg);
+      color: #ffffff;
+      font-size: calc(var(--btn-font-size) * 0.78);
+      font-weight: 600;
+      letter-spacing: 0.05em;
+    }
+
+    .btn-angle-mode:hover {
+      background: var(--btn-sci-hover);
+    }
+
+    .btn-angle-mode.rad-active {
+      background: var(--btn-op-bg);
+    }
+
+    .btn-angle-mode.rad-active:hover {
+      background: var(--btn-op-hover);
     }
 
     .btn-equals {
@@ -435,12 +486,33 @@
       </div>
 
       <div class="display" data-testid="display">
+        <div class="angle-mode-indicator" data-testid="angle-mode-indicator" id="angle-mode-indicator">DEG</div>
         <div class="expression" data-testid="expression"></div>
         <div class="value" data-testid="value">0</div>
       </div>
+
       <div class="buttons">
-        <button class="btn-clear" data-testid="btn-clear" onclick="clearAll()">C</button>
-        <button class="btn-utility" data-testid="btn-sign" onclick="toggleSign()">±</button>
+        <!-- Scientific row 1: angle mode toggle + trig functions -->
+        <button class="btn-angle-mode" data-testid="btn-angle-mode" id="angle-mode-btn" onclick="toggleAngleMode()" title="Toggle degrees / radians">DEG</button>
+        <button class="btn-scientific" data-testid="btn-sin" onclick="applyUnary('sin')">sin</button>
+        <button class="btn-scientific" data-testid="btn-cos" onclick="applyUnary('cos')">cos</button>
+        <button class="btn-scientific" data-testid="btn-tan" onclick="applyUnary('tan')">tan</button>
+
+        <!-- Scientific row 2: log / root / power -->
+        <button class="btn-scientific" data-testid="btn-log" onclick="applyUnary('log')">log</button>
+        <button class="btn-scientific" data-testid="btn-ln"  onclick="applyUnary('ln')">ln</button>
+        <button class="btn-scientific" data-testid="btn-sqrt"   onclick="applyUnary('√')">√</button>
+        <button class="btn-scientific" data-testid="btn-square" onclick="applyUnary('x²')">x²</button>
+
+        <!-- Scientific row 3: constants / extra ops -->
+        <button class="btn-scientific" data-testid="btn-power"     onclick="setOp('^')">xʸ</button>
+        <button class="btn-scientific" data-testid="btn-pi"        onclick="insertConstant('π')">π</button>
+        <button class="btn-scientific" data-testid="btn-euler"     onclick="insertConstant('e')">e</button>
+        <button class="btn-scientific" data-testid="btn-factorial" onclick="applyUnary('!')">n!</button>
+
+        <!-- Standard utility row -->
+        <button class="btn-clear"   data-testid="btn-clear"   onclick="clearAll()">C</button>
+        <button class="btn-utility" data-testid="btn-sign"    onclick="toggleSign()">±</button>
         <button class="btn-utility" data-testid="btn-percent" onclick="percent()">%</button>
         <button class="btn-operator" data-testid="btn-divide" onclick="setOp('÷')">÷</button>
 
@@ -460,7 +532,7 @@
         <button class="btn-operator" data-testid="btn-add" onclick="setOp('+')">+</button>
 
         <button class="btn-number btn-zero" data-testid="btn-0" onclick="digit('0')">0</button>
-        <button class="btn-number" data-testid="btn-decimal" onclick="decimal()">.</button>
+        <button class="btn-number" data-testid="btn-decimal"  onclick="decimal()">.</button>
         <button class="btn-utility" data-testid="btn-backspace" onclick="backspace()">⌫</button>
         <button class="btn-equals" data-testid="btn-equals" onclick="calculate()">=</button>
       </div>
@@ -484,11 +556,9 @@
 
     function setTheme(name) {
       if (!THEMES.includes(name)) name = 'dark';
-      // Remove all theme classes, then apply the chosen one (all themes use an explicit class)
       document.body.classList.remove(...THEMES.map(t => 'theme-' + t));
       document.body.classList.add('theme-' + name);
       localStorage.setItem(THEME_KEY, name);
-      // Update active indicator, ARIA checked state, and roving tabindex on dot buttons
       document.querySelectorAll('.theme-dot').forEach(function(btn) {
         const isActive = btn.dataset.theme === name;
         btn.classList.toggle('active', isActive);
@@ -497,12 +567,10 @@
       });
     }
 
-    // Attach click handlers to theme dot buttons
     document.querySelectorAll('.theme-dot').forEach(function(btn) {
       btn.addEventListener('click', function() { setTheme(btn.dataset.theme); });
     });
 
-    // Arrow-key navigation within the radiogroup (roving tabindex pattern)
     document.querySelector('.theme-dots').addEventListener('keydown', function(e) {
       if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft' &&
           e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
@@ -517,7 +585,6 @@
       dots[newIndex].focus();
     });
 
-    // Restore saved theme, respecting system color scheme preference for first-time visitors
     const savedTheme = localStorage.getItem(THEME_KEY);
     const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     setTheme(savedTheme || (systemPrefersDark ? 'dark' : 'light'));
@@ -539,12 +606,10 @@
       });
     }
 
-    // Attach click handlers to font size buttons
     document.querySelectorAll('.font-size-btn').forEach(function(btn) {
       btn.addEventListener('click', function() { setFontSize(btn.dataset.size); });
     });
 
-    // Arrow-key navigation within the font size radiogroup (roving tabindex pattern)
     document.querySelector('.font-size-options').addEventListener('keydown', function(e) {
       if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft' &&
           e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
@@ -559,7 +624,6 @@
       btns[newIndex].focus();
     });
 
-    // Restore saved font size on page load (default: medium)
     var savedFontSize = localStorage.getItem(FONT_SIZE_KEY);
     setFontSize(savedFontSize || 'medium');
 
@@ -569,15 +633,95 @@
     let operator = '';
     let resetNext = false;
     let calcHistory = [];
+    let angleMode = 'deg'; // 'deg' | 'rad'
 
-    const display = document.querySelector('[data-testid="value"]');
+    const display    = document.querySelector('[data-testid="value"]');
     const expression = document.querySelector('[data-testid="expression"]');
     const historyList = document.querySelector('[data-testid="history-list"]');
+    const angleModeBtn = document.getElementById('angle-mode-btn');
+    const angleModeIndicator = document.getElementById('angle-mode-indicator');
 
     function updateDisplay() {
       display.textContent = current;
     }
 
+    // ── Angle Mode ────────────────────────────────────────────
+    function toggleAngleMode() {
+      angleMode = angleMode === 'deg' ? 'rad' : 'deg';
+      const label = angleMode.toUpperCase();
+      angleModeBtn.textContent = label;
+      angleModeIndicator.textContent = label;
+      angleModeBtn.classList.toggle('rad-active', angleMode === 'rad');
+    }
+
+    function toRadians(x) {
+      return angleMode === 'deg' ? x * Math.PI / 180 : x;
+    }
+
+    // ── Scientific unary operations ───────────────────────────
+    function applyUnary(name) {
+      if (current === 'Error') return;
+      const val = parseFloat(current);
+      let result;
+
+      switch (name) {
+        case 'sin': result = Math.sin(toRadians(val)); break;
+        case 'cos': result = Math.cos(toRadians(val)); break;
+        case 'tan': {
+          result = Math.tan(toRadians(val));
+          if (!isFinite(result)) { current = 'Error'; updateDisplay(); return; }
+          break;
+        }
+        case 'log': {
+          if (val <= 0) { current = 'Error'; updateDisplay(); return; }
+          result = Math.log10(val);
+          break;
+        }
+        case 'ln': {
+          if (val <= 0) { current = 'Error'; updateDisplay(); return; }
+          result = Math.log(val);
+          break;
+        }
+        case '√': {
+          if (val < 0) { current = 'Error'; updateDisplay(); return; }
+          result = Math.sqrt(val);
+          break;
+        }
+        case 'x²': result = val * val; break;
+        case '!': {
+          if (val < 0 || val !== Math.floor(val) || val > 170) {
+            current = 'Error'; updateDisplay(); return;
+          }
+          result = jsFactorial(val);
+          break;
+        }
+        default: return;
+      }
+
+      const resultStr = String(parseFloat(result.toFixed(10)));
+      const exprText = `${name}(${current}) =`;
+      expression.textContent = exprText;
+      addToHistory(exprText, resultStr);
+      current = resultStr;
+      resetNext = true;
+      updateDisplay();
+    }
+
+    function jsFactorial(n) {
+      let r = 1;
+      for (let i = 2; i <= n; i++) r *= i;
+      return r;
+    }
+
+    // ── Constants ─────────────────────────────────────────────
+    function insertConstant(name) {
+      if (name === 'π') current = String(Math.PI);
+      else if (name === 'e') current = String(Math.E);
+      resetNext = true;
+      updateDisplay();
+    }
+
+    // ── Basic input ───────────────────────────────────────────
     function digit(d) {
       if (resetNext) {
         current = d;
@@ -621,6 +765,7 @@
         case '−': result = a - b; break;
         case '×': result = a * b; break;
         case '÷': result = b !== 0 ? a / b : 'Error'; break;
+        case '^': result = Math.pow(a, b); break;
         default: return;
       }
 
@@ -660,6 +805,7 @@
       }
     }
 
+    // ── History ───────────────────────────────────────────────
     function addToHistory(expr, result) {
       calcHistory.unshift({ expression: expr, result });
       if (calcHistory.length > 5) calcHistory.pop();
@@ -727,7 +873,7 @@
     function backspace() {
       if (!resetNext && current.length > 1) {
         const sliced = current.slice(0, -1);
-        current = sliced === '-' ? '0' : sliced;  // don't leave a bare '-'
+        current = sliced === '-' ? '0' : sliced;
       } else {
         current = '0';
         resetNext = false;
@@ -735,7 +881,7 @@
       updateDisplay();
     }
 
-    // Keyboard support
+    // ── Keyboard support ──────────────────────────────────────
     document.addEventListener('keydown', function(e) {
       if (e.key >= '0' && e.key <= '9') {
         digit(e.key);
@@ -750,6 +896,8 @@
       } else if (e.key === '/') {
         e.preventDefault();
         setOp('÷');
+      } else if (e.key === '^') {
+        setOp('^');
       } else if (e.key === 'Enter' || e.key === '=') {
         calculate();
       } else if (e.key === 'Escape') {
