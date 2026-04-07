@@ -846,4 +846,232 @@ test.describe("Calculator UI", () => {
       await expect(page.getByTestId("value")).toHaveText("7");
     });
   });
+
+  // ── Scientific Calculator tests ────────────────────────────────────────────
+  test.describe("Scientific Calculator", () => {
+    // --- Button visibility ---
+    test("scientific buttons are visible", async ({ page }) => {
+      await expect(page.getByTestId("btn-sin")).toBeVisible();
+      await expect(page.getByTestId("btn-cos")).toBeVisible();
+      await expect(page.getByTestId("btn-tan")).toBeVisible();
+      await expect(page.getByTestId("btn-log")).toBeVisible();
+      await expect(page.getByTestId("btn-ln")).toBeVisible();
+      await expect(page.getByTestId("btn-sqrt")).toBeVisible();
+      await expect(page.getByTestId("btn-square")).toBeVisible();
+      await expect(page.getByTestId("btn-power")).toBeVisible();
+      await expect(page.getByTestId("btn-pi")).toBeVisible();
+      await expect(page.getByTestId("btn-euler")).toBeVisible();
+      await expect(page.getByTestId("btn-factorial")).toBeVisible();
+      await expect(page.getByTestId("btn-angle-mode")).toBeVisible();
+    });
+
+    test("angle mode indicator is visible in display", async ({ page }) => {
+      await expect(page.getByTestId("angle-mode-indicator")).toBeVisible();
+    });
+
+    test("angle mode defaults to DEG", async ({ page }) => {
+      await expect(page.getByTestId("btn-angle-mode")).toHaveText("DEG");
+      await expect(page.getByTestId("angle-mode-indicator")).toHaveText("DEG");
+    });
+
+    // --- Angle mode toggle ---
+    test("clicking angle mode toggles to RAD", async ({ page }) => {
+      await page.getByTestId("btn-angle-mode").click();
+      await expect(page.getByTestId("btn-angle-mode")).toHaveText("RAD");
+      await expect(page.getByTestId("angle-mode-indicator")).toHaveText("RAD");
+    });
+
+    test("clicking angle mode twice returns to DEG", async ({ page }) => {
+      await page.getByTestId("btn-angle-mode").click();
+      await page.getByTestId("btn-angle-mode").click();
+      await expect(page.getByTestId("btn-angle-mode")).toHaveText("DEG");
+    });
+
+    // --- Trig functions (degrees mode) ---
+    test("sin(30) in degrees equals 0.5", async ({ page }) => {
+      await page.getByTestId("btn-3").click();
+      await page.getByTestId("btn-0").click();
+      await page.getByTestId("btn-sin").click();
+      await expect(page.getByTestId("value")).toHaveText("0.5");
+    });
+
+    test("cos(60) in degrees equals 0.5", async ({ page }) => {
+      await page.getByTestId("btn-6").click();
+      await page.getByTestId("btn-0").click();
+      await page.getByTestId("btn-cos").click();
+      await expect(page.getByTestId("value")).toHaveText("0.5");
+    });
+
+    test("tan(45) in degrees equals 1", async ({ page }) => {
+      await page.getByTestId("btn-4").click();
+      await page.getByTestId("btn-5").click();
+      await page.getByTestId("btn-tan").click();
+      await expect(page.getByTestId("value")).toHaveText("1");
+    });
+
+    test("sin(0) in degrees equals 0", async ({ page }) => {
+      await page.getByTestId("btn-sin").click();
+      await expect(page.getByTestId("value")).toHaveText("0");
+    });
+
+    // --- Trig functions (radians mode) ---
+    test("sin in radians mode: sin(π/6) ≈ 0.5", async ({ page }) => {
+      // Switch to RAD
+      await page.getByTestId("btn-angle-mode").click();
+      // Enter π/6 ≈ 0.5236
+      await page.getByTestId("btn-pi").click();
+      await page.getByTestId("btn-divide").click();
+      await page.getByTestId("btn-6").click();
+      await page.getByTestId("btn-equals").click();
+      // Now apply sin
+      await page.getByTestId("btn-sin").click();
+      const text = await page.getByTestId("value").textContent();
+      expect(parseFloat(text)).toBeCloseTo(0.5, 5);
+    });
+
+    // --- log / ln ---
+    test("log(100) equals 2", async ({ page }) => {
+      await page.getByTestId("btn-1").click();
+      await page.getByTestId("btn-0").click();
+      await page.getByTestId("btn-0").click();
+      await page.getByTestId("btn-log").click();
+      await expect(page.getByTestId("value")).toHaveText("2");
+    });
+
+    test("log(1) equals 0", async ({ page }) => {
+      await page.getByTestId("btn-1").click();
+      await page.getByTestId("btn-log").click();
+      await expect(page.getByTestId("value")).toHaveText("0");
+    });
+
+    test("log of 0 shows Error", async ({ page }) => {
+      // default display is 0; pressing log should show Error
+      await page.getByTestId("btn-log").click();
+      await expect(page.getByTestId("value")).toHaveText("Error");
+    });
+
+    test("ln(1) equals 0", async ({ page }) => {
+      await page.getByTestId("btn-1").click();
+      await page.getByTestId("btn-ln").click();
+      await expect(page.getByTestId("value")).toHaveText("0");
+    });
+
+    test("ln of 0 shows Error", async ({ page }) => {
+      await page.getByTestId("btn-ln").click();
+      await expect(page.getByTestId("value")).toHaveText("Error");
+    });
+
+    // --- sqrt ---
+    test("sqrt(9) equals 3", async ({ page }) => {
+      await page.getByTestId("btn-9").click();
+      await page.getByTestId("btn-sqrt").click();
+      await expect(page.getByTestId("value")).toHaveText("3");
+    });
+
+    test("sqrt(4) equals 2", async ({ page }) => {
+      await page.getByTestId("btn-4").click();
+      await page.getByTestId("btn-sqrt").click();
+      await expect(page.getByTestId("value")).toHaveText("2");
+    });
+
+    test("sqrt of negative number shows Error", async ({ page }) => {
+      await page.getByTestId("btn-9").click();
+      await page.getByTestId("btn-sign").click(); // -9
+      await page.getByTestId("btn-sqrt").click();
+      await expect(page.getByTestId("value")).toHaveText("Error");
+    });
+
+    // --- square (x²) ---
+    test("x² of 5 equals 25", async ({ page }) => {
+      await page.getByTestId("btn-5").click();
+      await page.getByTestId("btn-square").click();
+      await expect(page.getByTestId("value")).toHaveText("25");
+    });
+
+    test("x² of 3 equals 9", async ({ page }) => {
+      await page.getByTestId("btn-3").click();
+      await page.getByTestId("btn-square").click();
+      await expect(page.getByTestId("value")).toHaveText("9");
+    });
+
+    // --- power (xʸ) ---
+    test("2 xʸ 8 equals 256", async ({ page }) => {
+      await page.getByTestId("btn-2").click();
+      await page.getByTestId("btn-power").click();
+      await page.getByTestId("btn-8").click();
+      await page.getByTestId("btn-equals").click();
+      await expect(page.getByTestId("value")).toHaveText("256");
+    });
+
+    test("3 xʸ 3 equals 27", async ({ page }) => {
+      await page.getByTestId("btn-3").click();
+      await page.getByTestId("btn-power").click();
+      await page.getByTestId("btn-3").click();
+      await page.getByTestId("btn-equals").click();
+      await expect(page.getByTestId("value")).toHaveText("27");
+    });
+
+    // --- Constants ---
+    test("pressing π inserts pi value", async ({ page }) => {
+      await page.getByTestId("btn-pi").click();
+      const text = await page.getByTestId("value").textContent();
+      expect(parseFloat(text)).toBeCloseTo(Math.PI, 5);
+    });
+
+    test("pressing e inserts Euler's number", async ({ page }) => {
+      await page.getByTestId("btn-euler").click();
+      const text = await page.getByTestId("value").textContent();
+      expect(parseFloat(text)).toBeCloseTo(Math.E, 5);
+    });
+
+    test("π can be used in arithmetic: π × 2", async ({ page }) => {
+      await page.getByTestId("btn-pi").click();
+      await page.getByTestId("btn-multiply").click();
+      await page.getByTestId("btn-2").click();
+      await page.getByTestId("btn-equals").click();
+      const text = await page.getByTestId("value").textContent();
+      expect(parseFloat(text)).toBeCloseTo(2 * Math.PI, 5);
+    });
+
+    // --- factorial (n!) ---
+    test("5! equals 120", async ({ page }) => {
+      await page.getByTestId("btn-5").click();
+      await page.getByTestId("btn-factorial").click();
+      await expect(page.getByTestId("value")).toHaveText("120");
+    });
+
+    test("0! equals 1", async ({ page }) => {
+      await page.getByTestId("btn-factorial").click();
+      await expect(page.getByTestId("value")).toHaveText("1");
+    });
+
+    test("factorial of negative number shows Error", async ({ page }) => {
+      await page.getByTestId("btn-5").click();
+      await page.getByTestId("btn-sign").click(); // -5
+      await page.getByTestId("btn-factorial").click();
+      await expect(page.getByTestId("value")).toHaveText("Error");
+    });
+
+    // --- History integration ---
+    test("scientific unary result is added to history", async ({ page }) => {
+      await page.getByTestId("btn-9").click();
+      await page.getByTestId("btn-sqrt").click();
+      await expect(page.getByTestId("history-item-0")).toBeVisible();
+      await expect(page.getByTestId("history-result-0")).toHaveText("3");
+    });
+
+    test("expression in history shows function notation for unary ops", async ({ page }) => {
+      await page.getByTestId("btn-9").click();
+      await page.getByTestId("btn-sqrt").click();
+      await expect(page.getByTestId("history-expression-0")).toContainText("√");
+    });
+
+    test("power result is added to history", async ({ page }) => {
+      await page.getByTestId("btn-2").click();
+      await page.getByTestId("btn-power").click();
+      await page.getByTestId("btn-4").click();
+      await page.getByTestId("btn-equals").click();
+      await expect(page.getByTestId("history-result-0")).toHaveText("16");
+    });
+  });
 });
