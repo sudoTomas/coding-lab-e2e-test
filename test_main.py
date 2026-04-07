@@ -7,6 +7,7 @@ from main import (
     sin_deg, cos_deg, tan_deg,
     sin_rad, cos_rad, tan_rad,
     log10, ln, factorial,
+    evaluate_expression,
 )
 
 
@@ -146,3 +147,155 @@ def test_factorial_invalid():
         factorial(-1)
     with pytest.raises(ValueError):
         factorial(2.5)
+
+
+# ── Expression evaluator ─────────────────────────────────────────────────────
+
+class TestEvaluateExpression:
+    """Tests for the evaluate_expression function."""
+
+    # --- Simple arithmetic ---
+
+    def test_addition(self):
+        assert evaluate_expression("2 + 3") == pytest.approx(5.0)
+
+    def test_subtraction(self):
+        assert evaluate_expression("10 - 4") == pytest.approx(6.0)
+
+    def test_multiplication(self):
+        assert evaluate_expression("3 * 7") == pytest.approx(21.0)
+
+    def test_division(self):
+        assert evaluate_expression("10 / 2") == pytest.approx(5.0)
+
+    def test_exponentiation(self):
+        assert evaluate_expression("2 ^ 10") == pytest.approx(1024.0)
+
+    # --- Operator precedence ---
+
+    def test_precedence_mul_over_add(self):
+        assert evaluate_expression("2 + 3 * 4") == pytest.approx(14.0)
+
+    def test_precedence_div_over_sub(self):
+        assert evaluate_expression("10 - 6 / 3") == pytest.approx(8.0)
+
+    def test_precedence_exp_over_mul(self):
+        assert evaluate_expression("2 * 3 ^ 2") == pytest.approx(18.0)
+
+    # --- Parentheses ---
+
+    def test_parentheses_basic(self):
+        assert evaluate_expression("(2 + 3) * 4") == pytest.approx(20.0)
+
+    def test_nested_parentheses(self):
+        assert evaluate_expression("((2 + 3) * (4 - 1))") == pytest.approx(15.0)
+
+    def test_deeply_nested_parentheses(self):
+        assert evaluate_expression("(((1 + 2)))") == pytest.approx(3.0)
+
+    # --- Unary minus ---
+
+    def test_unary_minus(self):
+        assert evaluate_expression("-5") == pytest.approx(-5.0)
+
+    def test_unary_minus_in_expression(self):
+        assert evaluate_expression("3 + -2") == pytest.approx(1.0)
+
+    def test_unary_minus_with_parens(self):
+        assert evaluate_expression("-(3 + 2)") == pytest.approx(-5.0)
+
+    # --- Functions ---
+
+    def test_sin_zero(self):
+        assert evaluate_expression("sin(0)") == pytest.approx(0.0, abs=1e-9)
+
+    def test_sin_90(self):
+        assert evaluate_expression("sin(90)") == pytest.approx(1.0)
+
+    def test_cos_zero(self):
+        assert evaluate_expression("cos(0)") == pytest.approx(1.0)
+
+    def test_tan_45(self):
+        assert evaluate_expression("tan(45)") == pytest.approx(1.0)
+
+    def test_sqrt_16(self):
+        assert evaluate_expression("sqrt(16)") == pytest.approx(4.0)
+
+    def test_log_100(self):
+        assert evaluate_expression("log(100)") == pytest.approx(2.0)
+
+    def test_ln_e(self):
+        assert evaluate_expression("ln(e)") == pytest.approx(1.0)
+
+    def test_factorial_func(self):
+        assert evaluate_expression("factorial(5)") == pytest.approx(120.0)
+
+    def test_power_func(self):
+        assert evaluate_expression("power(2, 8)") == pytest.approx(256.0)
+
+    # --- Constants ---
+
+    def test_pi_constant(self):
+        assert evaluate_expression("pi") == pytest.approx(math.pi)
+
+    def test_e_constant(self):
+        assert evaluate_expression("e") == pytest.approx(math.e)
+
+    def test_constant_in_expression(self):
+        assert evaluate_expression("2 * pi") == pytest.approx(2 * math.pi)
+
+    # --- Mixed expressions ---
+
+    def test_mixed_sqrt_and_sin(self):
+        assert evaluate_expression("sqrt(16) + sin(0) * 5") == pytest.approx(4.0)
+
+    def test_complex_expression(self):
+        # (2 + 3) * sin(45) - sqrt(16) ≈ 5 * 0.7071 - 4 ≈ -0.4645
+        result = evaluate_expression("(2 + 3) * sin(45) - sqrt(16)")
+        expected = 5 * math.sin(math.radians(45)) - 4
+        assert result == pytest.approx(expected)
+
+    def test_nested_functions(self):
+        assert evaluate_expression("sqrt(abs(-16))") == pytest.approx(4.0)
+
+    # --- Error cases ---
+
+    def test_empty_expression(self):
+        with pytest.raises(ValueError):
+            evaluate_expression("")
+
+    def test_whitespace_only(self):
+        with pytest.raises(ValueError):
+            evaluate_expression("   ")
+
+    def test_invalid_syntax(self):
+        with pytest.raises(ValueError):
+            evaluate_expression("2 +")
+
+    def test_mismatched_parens(self):
+        with pytest.raises(ValueError):
+            evaluate_expression("(2 + 3")
+
+    def test_division_by_zero(self):
+        with pytest.raises(ZeroDivisionError):
+            evaluate_expression("5 / 0")
+
+    def test_sqrt_negative(self):
+        with pytest.raises(ValueError):
+            evaluate_expression("sqrt(-1)")
+
+    def test_log_negative(self):
+        with pytest.raises(ValueError):
+            evaluate_expression("log(-5)")
+
+    def test_unknown_function(self):
+        with pytest.raises(ValueError):
+            evaluate_expression("foo(3)")
+
+    def test_unknown_identifier(self):
+        with pytest.raises(ValueError):
+            evaluate_expression("xyz + 1")
+
+    def test_unexpected_character(self):
+        with pytest.raises(ValueError):
+            evaluate_expression("2 & 3")
