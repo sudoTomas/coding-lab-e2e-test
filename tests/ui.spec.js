@@ -1074,4 +1074,131 @@ test.describe("Calculator UI", () => {
       await expect(page.getByTestId("history-result-0")).toHaveText("16");
     });
   });
+
+  // ── Expression Mode ──────────────────────────────────────────────────────
+  test.describe("Expression Mode", () => {
+    test("mode toggle button is visible", async ({ page }) => {
+      await expect(page.getByTestId("btn-mode-toggle")).toBeVisible();
+    });
+
+    test("clicking toggle switches to expression mode", async ({ page }) => {
+      await page.getByTestId("btn-mode-toggle").click();
+      await expect(page.getByTestId("btn-mode-toggle")).toHaveClass(/active/);
+      await expect(page.getByTestId("expr-input")).toBeVisible();
+    });
+
+    test("clicking toggle twice returns to standard mode", async ({ page }) => {
+      await page.getByTestId("btn-mode-toggle").click();
+      await page.getByTestId("btn-mode-toggle").click();
+      await expect(page.getByTestId("btn-mode-toggle")).not.toHaveClass(/active/);
+      await expect(page.getByTestId("expr-input")).not.toBeVisible();
+    });
+
+    test("parentheses buttons visible in expression mode", async ({ page }) => {
+      await page.getByTestId("btn-mode-toggle").click();
+      await expect(page.getByTestId("btn-open-paren")).toBeVisible();
+      await expect(page.getByTestId("btn-close-paren")).toBeVisible();
+    });
+
+    test("parentheses buttons hidden in standard mode", async ({ page }) => {
+      await expect(page.getByTestId("btn-open-paren")).not.toBeVisible();
+      await expect(page.getByTestId("btn-close-paren")).not.toBeVisible();
+    });
+
+    test("typing and evaluating simple expression", async ({ page }) => {
+      await page.getByTestId("btn-mode-toggle").click();
+      const input = page.getByTestId("expr-input");
+      await input.fill("2 + 3");
+      await page.getByTestId("btn-equals").click();
+      await expect(page.getByTestId("value")).toHaveText("5");
+    });
+
+    test("expression with parentheses", async ({ page }) => {
+      await page.getByTestId("btn-mode-toggle").click();
+      const input = page.getByTestId("expr-input");
+      await input.fill("(2 + 3) * 4");
+      await page.getByTestId("btn-equals").click();
+      await expect(page.getByTestId("value")).toHaveText("20");
+    });
+
+    test("expression with function call", async ({ page }) => {
+      await page.getByTestId("btn-mode-toggle").click();
+      const input = page.getByTestId("expr-input");
+      await input.fill("sqrt(16)");
+      await page.getByTestId("btn-equals").click();
+      await expect(page.getByTestId("value")).toHaveText("4");
+    });
+
+    test("expression result added to history", async ({ page }) => {
+      await page.getByTestId("btn-mode-toggle").click();
+      const input = page.getByTestId("expr-input");
+      await input.fill("2 + 3");
+      await page.getByTestId("btn-equals").click();
+      await expect(page.getByTestId("history-item-0")).toBeVisible();
+      await expect(page.getByTestId("history-result-0")).toHaveText("5");
+    });
+
+    test("invalid expression shows error", async ({ page }) => {
+      await page.getByTestId("btn-mode-toggle").click();
+      const input = page.getByTestId("expr-input");
+      await input.fill("2 +");
+      await page.getByTestId("btn-equals").click();
+      await expect(page.getByTestId("value")).toHaveText("Error");
+    });
+
+    test("complex expression evaluates correctly", async ({ page }) => {
+      await page.getByTestId("btn-mode-toggle").click();
+      const input = page.getByTestId("expr-input");
+      await input.fill("2 + 3 * 4");
+      await page.getByTestId("btn-equals").click();
+      await expect(page.getByTestId("value")).toHaveText("14");
+    });
+
+    test("expression with constants", async ({ page }) => {
+      await page.getByTestId("btn-mode-toggle").click();
+      const input = page.getByTestId("expr-input");
+      await input.fill("pi");
+      await page.getByTestId("btn-equals").click();
+      await expect(page.getByTestId("value")).toContainText("3.1415926");
+    });
+
+    test("Enter key evaluates expression", async ({ page }) => {
+      await page.getByTestId("btn-mode-toggle").click();
+      const input = page.getByTestId("expr-input");
+      await input.fill("10 / 2");
+      await input.press("Enter");
+      await expect(page.getByTestId("value")).toHaveText("5");
+    });
+
+    test("mode persists across reload", async ({ page }) => {
+      await page.getByTestId("btn-mode-toggle").click();
+      await expect(page.getByTestId("btn-mode-toggle")).toHaveClass(/active/);
+      await page.reload();
+      await expect(page.getByTestId("btn-mode-toggle")).toHaveClass(/active/);
+      await expect(page.getByTestId("expr-input")).toBeVisible();
+    });
+
+    test("number buttons insert into expression input", async ({ page }) => {
+      await page.getByTestId("btn-mode-toggle").click();
+      await page.getByTestId("btn-5").click();
+      await page.getByTestId("btn-3").click();
+      await expect(page.getByTestId("expr-input")).toHaveValue("53");
+    });
+
+    test("parenthesis buttons insert into expression input", async ({ page }) => {
+      await page.getByTestId("btn-mode-toggle").click();
+      await page.getByTestId("btn-open-paren").click();
+      await page.getByTestId("btn-2").click();
+      await page.getByTestId("btn-close-paren").click();
+      await expect(page.getByTestId("expr-input")).toHaveValue("(2)");
+    });
+
+    test("expression display shows expression after evaluation", async ({ page }) => {
+      await page.getByTestId("btn-mode-toggle").click();
+      const input = page.getByTestId("expr-input");
+      await input.fill("1 + 1");
+      await page.getByTestId("btn-equals").click();
+      await expect(page.getByTestId("expression")).toHaveText("1 + 1 =");
+    });
+  });
 });

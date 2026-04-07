@@ -377,6 +377,66 @@
       grid-column: span 2;
     }
 
+    /* ── Expression Mode Toggle ───────────────────────────── */
+    .mode-switcher {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .mode-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 500;
+    }
+
+    .mode-toggle-btn {
+      padding: 4px 12px;
+      font-size: 12px;
+      background: var(--btn-sci-bg);
+      color: #ffffff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.15s;
+      font-family: inherit;
+      font-weight: 500;
+    }
+
+    .mode-toggle-btn:hover {
+      background: var(--btn-sci-hover);
+    }
+
+    .mode-toggle-btn.active {
+      background: var(--btn-op-bg);
+    }
+
+    .mode-toggle-btn.active:hover {
+      background: var(--btn-op-hover);
+    }
+
+    /* Expression mode input */
+    .expr-input {
+      width: 100%;
+      background: transparent;
+      border: none;
+      color: var(--text-main);
+      font-size: var(--display-font-size);
+      font-weight: 300;
+      font-family: inherit;
+      text-align: right;
+      outline: none;
+      word-break: break-all;
+    }
+
+    .expr-input::placeholder {
+      color: var(--text-muted);
+      opacity: 0.6;
+    }
+
     /* ── History Panel ─────────────────────────────────────── */
     .history-panel {
       background: var(--calc-bg);
@@ -485,10 +545,17 @@
         </div>
       </div>
 
+      <!-- Mode Switcher -->
+      <div class="mode-switcher" data-testid="mode-switcher">
+        <span class="mode-label">Mode</span>
+        <button class="mode-toggle-btn" data-testid="btn-mode-toggle" onclick="toggleMode()">Expression</button>
+      </div>
+
       <div class="display" data-testid="display">
         <div class="angle-mode-indicator" data-testid="angle-mode-indicator" id="angle-mode-indicator">DEG</div>
         <div class="expression" data-testid="expression"></div>
         <div class="value" data-testid="value">0</div>
+        <input class="expr-input" data-testid="expr-input" id="expr-input" type="text" placeholder="e.g. (2+3)*sin(45)" style="display:none;" />
       </div>
 
       <div class="buttons">
@@ -534,7 +601,11 @@
         <button class="btn-number btn-zero" data-testid="btn-0" onclick="digit('0')">0</button>
         <button class="btn-number" data-testid="btn-decimal"  onclick="decimal()">.</button>
         <button class="btn-utility" data-testid="btn-backspace" onclick="backspace()">⌫</button>
-        <button class="btn-equals" data-testid="btn-equals" onclick="calculate()">=</button>
+
+        <!-- Parentheses row (visible in expression mode) -->
+        <button class="btn-scientific" data-testid="btn-open-paren" id="btn-open-paren" onclick="exprInsert('(')" style="display:none;">(</button>
+        <button class="btn-scientific" data-testid="btn-close-paren" id="btn-close-paren" onclick="exprInsert(')')" style="display:none;">)</button>
+        <button class="btn-equals" data-testid="btn-equals" onclick="handleEquals()" id="btn-equals">=</button>
       </div>
     </div>
 
@@ -626,6 +697,258 @@
 
     var savedFontSize = localStorage.getItem(FONT_SIZE_KEY);
     setFontSize(savedFontSize || 'medium');
+
+    // ── Expression Mode ──────────────────────────────────────
+    const MODE_KEY = 'calc-mode';
+    let expressionMode = false;  // false = standard, true = expression
+    const modeToggleBtn = document.querySelector('[data-testid="btn-mode-toggle"]');
+    const exprInput = document.getElementById('expr-input');
+    const btnOpenParen = document.getElementById('btn-open-paren');
+    const btnCloseParen = document.getElementById('btn-close-paren');
+    const btnEquals = document.getElementById('btn-equals');
+    const valueDisplay = document.querySelector('[data-testid="value"]');
+    const expressionDisplay = document.querySelector('[data-testid="expression"]');
+
+    function setMode(isExprMode) {
+      expressionMode = isExprMode;
+      localStorage.setItem(MODE_KEY, isExprMode ? 'expression' : 'standard');
+      modeToggleBtn.classList.toggle('active', isExprMode);
+      modeToggleBtn.textContent = isExprMode ? 'Standard' : 'Expression';
+
+      if (isExprMode) {
+        valueDisplay.style.display = 'none';
+        exprInput.style.display = 'block';
+        btnOpenParen.style.display = '';
+        btnCloseParen.style.display = '';
+        btnEquals.style.gridColumn = 'span 2';
+        exprInput.focus();
+      } else {
+        valueDisplay.style.display = '';
+        exprInput.style.display = 'none';
+        btnOpenParen.style.display = 'none';
+        btnCloseParen.style.display = 'none';
+        btnEquals.style.gridColumn = 'span 4';
+      }
+    }
+
+    function toggleMode() {
+      setMode(!expressionMode);
+    }
+
+    // Restore saved mode
+    var savedMode = localStorage.getItem(MODE_KEY);
+    setMode(savedMode === 'expression');
+
+    function exprInsert(text) {
+      if (!expressionMode) return;
+      var start = exprInput.selectionStart;
+      var end = exprInput.selectionEnd;
+      var val = exprInput.value;
+      exprInput.value = val.substring(0, start) + text + val.substring(end);
+      exprInput.selectionStart = exprInput.selectionEnd = start + text.length;
+      exprInput.focus();
+    }
+
+    function evaluateExpr() {
+      var expr = exprInput.value.trim();
+      if (!expr) return;
+      try {
+        // Use a simple fetch to the backend or evaluate locally
+        // For a static frontend, we implement a JS-based expression parser
+        var result = jsEvaluateExpression(expr);
+        var resultStr = String(parseFloat(result.toFixed(10)));
+        expressionDisplay.textContent = expr + ' =';
+        valueDisplay.textContent = resultStr;
+        valueDisplay.style.display = '';
+        exprInput.style.display = 'none';
+        addToHistory(expr + ' =', resultStr);
+        // After showing result, a click on input should show again
+        setTimeout(function() {
+          if (expressionMode) {
+            valueDisplay.style.display = 'none';
+            exprInput.style.display = 'block';
+            exprInput.value = '';
+            exprInput.focus();
+          }
+        }, 1500);
+      } catch (e) {
+        expressionDisplay.textContent = expr + ' =';
+        valueDisplay.textContent = 'Error';
+        valueDisplay.style.display = '';
+        exprInput.style.display = 'none';
+        addToHistory(expr + ' =', 'Error');
+        setTimeout(function() {
+          if (expressionMode) {
+            valueDisplay.style.display = 'none';
+            exprInput.style.display = 'block';
+            exprInput.value = '';
+            exprInput.focus();
+          }
+        }, 1500);
+      }
+    }
+
+    // Handle = button depending on mode
+    function handleEquals() {
+      if (expressionMode) {
+        evaluateExpr();
+      } else {
+        calculate();
+      }
+    }
+
+    // Listen for Enter on expr input
+    exprInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' || e.key === '=') {
+        e.preventDefault();
+        evaluateExpr();
+      }
+    });
+
+    // ── JS Expression Parser (mirrors Python backend) ─────────
+    function jsEvaluateExpression(expr) {
+      var tokens = jsTokenize(expr);
+      var pos = { i: 0 };
+      var result = jsParseExpr(tokens, pos);
+      if (pos.i < tokens.length) throw new Error("Unexpected token: " + tokens[pos.i][1]);
+      if (!isFinite(result)) throw new Error("Result is not finite");
+      return result;
+    }
+
+    function jsTokenize(expr) {
+      var tokens = [];
+      var i = 0;
+      while (i < expr.length) {
+        var ch = expr[i];
+        if (ch === ' ' || ch === '\t') { i++; continue; }
+        if ('()+-*/^'.indexOf(ch) >= 0) {
+          tokens.push(['OP', ch]);
+          i++;
+        } else if (ch === ',') {
+          tokens.push(['COMMA', ',']);
+          i++;
+        } else if ((ch >= '0' && ch <= '9') || ch === '.') {
+          var j = i;
+          var dotSeen = ch === '.';
+          while (j + 1 < expr.length && ((expr[j+1] >= '0' && expr[j+1] <= '9') || (expr[j+1] === '.' && !dotSeen))) {
+            j++;
+            if (expr[j] === '.') dotSeen = true;
+          }
+          tokens.push(['NUM', expr.substring(i, j + 1)]);
+          i = j + 1;
+        } else if ((ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || ch === '_') {
+          var j = i;
+          while (j + 1 < expr.length && ((expr[j+1] >= 'a' && expr[j+1] <= 'z') || (expr[j+1] >= 'A' && expr[j+1] <= 'Z') || (expr[j+1] >= '0' && expr[j+1] <= '9') || expr[j+1] === '_')) {
+            j++;
+          }
+          tokens.push(['ID', expr.substring(i, j + 1)]);
+          i = j + 1;
+        } else {
+          throw new Error("Unexpected character: '" + ch + "'");
+        }
+      }
+      return tokens;
+    }
+
+    var jsAngleMode = function() { return angleMode; };
+
+    var jsFunctions = {
+      'sin': function(x) { return Math.sin(angleMode === 'deg' ? x * Math.PI / 180 : x); },
+      'cos': function(x) { return Math.cos(angleMode === 'deg' ? x * Math.PI / 180 : x); },
+      'tan': function(x) { return Math.tan(angleMode === 'deg' ? x * Math.PI / 180 : x); },
+      'log': function(x) { if (x <= 0) throw new Error("Log domain error"); return Math.log10(x); },
+      'ln': function(x) { if (x <= 0) throw new Error("Ln domain error"); return Math.log(x); },
+      'sqrt': function(x) { if (x < 0) throw new Error("Sqrt domain error"); return Math.sqrt(x); },
+      'factorial': function(x) {
+        if (x < 0 || x !== Math.floor(x) || x > 170) throw new Error("Factorial domain error");
+        return jsFactorial(x);
+      },
+      'abs': function(x) { return Math.abs(x); },
+      'power': function(x, y) { return Math.pow(x, y); }
+    };
+
+    var jsConstants = { 'pi': Math.PI, 'e': Math.E };
+
+    function jsParseExpr(tokens, pos) {
+      var left = jsParseTerm(tokens, pos);
+      while (pos.i < tokens.length && tokens[pos.i][0] === 'OP' && (tokens[pos.i][1] === '+' || tokens[pos.i][1] === '-')) {
+        var op = tokens[pos.i][1]; pos.i++;
+        var right = jsParseTerm(tokens, pos);
+        left = op === '+' ? left + right : left - right;
+      }
+      return left;
+    }
+
+    function jsParseTerm(tokens, pos) {
+      var left = jsParseExponent(tokens, pos);
+      while (pos.i < tokens.length && tokens[pos.i][0] === 'OP' && (tokens[pos.i][1] === '*' || tokens[pos.i][1] === '/')) {
+        var op = tokens[pos.i][1]; pos.i++;
+        var right = jsParseExponent(tokens, pos);
+        if (op === '*') left = left * right;
+        else {
+          if (right === 0) throw new Error("Division by zero");
+          left = left / right;
+        }
+      }
+      return left;
+    }
+
+    function jsParseExponent(tokens, pos) {
+      var base = jsParseUnary(tokens, pos);
+      if (pos.i < tokens.length && tokens[pos.i][0] === 'OP' && tokens[pos.i][1] === '^') {
+        pos.i++;
+        var exp = jsParseExponent(tokens, pos);
+        base = Math.pow(base, exp);
+      }
+      return base;
+    }
+
+    function jsParseUnary(tokens, pos) {
+      if (pos.i < tokens.length && tokens[pos.i][0] === 'OP' && tokens[pos.i][1] === '-') {
+        pos.i++;
+        return -jsParseUnary(tokens, pos);
+      }
+      return jsParsePrimary(tokens, pos);
+    }
+
+    function jsParsePrimary(tokens, pos) {
+      if (pos.i >= tokens.length) throw new Error("Unexpected end of expression");
+      var tok = tokens[pos.i];
+
+      if (tok[0] === 'NUM') {
+        pos.i++;
+        return parseFloat(tok[1]);
+      }
+
+      if (tok[0] === 'ID') {
+        var name = tok[1].toLowerCase();
+        pos.i++;
+        if (pos.i < tokens.length && tokens[pos.i][0] === 'OP' && tokens[pos.i][1] === '(') {
+          if (!jsFunctions[name]) throw new Error("Unknown function: " + name);
+          pos.i++; // consume (
+          var args = [jsParseExpr(tokens, pos)];
+          while (pos.i < tokens.length && tokens[pos.i][0] === 'COMMA') {
+            pos.i++;
+            args.push(jsParseExpr(tokens, pos));
+          }
+          if (pos.i >= tokens.length || tokens[pos.i][1] !== ')') throw new Error("Expected )");
+          pos.i++; // consume )
+          return jsFunctions[name].apply(null, args);
+        }
+        if (jsConstants[name] !== undefined) return jsConstants[name];
+        throw new Error("Unknown identifier: " + name);
+      }
+
+      if (tok[0] === 'OP' && tok[1] === '(') {
+        pos.i++;
+        var result = jsParseExpr(tokens, pos);
+        if (pos.i >= tokens.length || tokens[pos.i][1] !== ')') throw new Error("Expected )");
+        pos.i++;
+        return result;
+      }
+
+      throw new Error("Unexpected token: " + tok[1]);
+    }
 
     // ── Calculator State ──────────────────────────────────────
     let current = '0';
@@ -723,6 +1046,7 @@
 
     // ── Basic input ───────────────────────────────────────────
     function digit(d) {
+      if (expressionMode) { exprInsert(d); return; }
       if (resetNext) {
         current = d;
         resetNext = false;
@@ -733,6 +1057,7 @@
     }
 
     function decimal() {
+      if (expressionMode) { exprInsert('.'); return; }
       if (resetNext) {
         current = '0.';
         resetNext = false;
@@ -883,6 +1208,9 @@
 
     // ── Keyboard support ──────────────────────────────────────
     document.addEventListener('keydown', function(e) {
+      // In expression mode, let the input handle its own events
+      if (expressionMode && document.activeElement === exprInput) return;
+
       if (e.key >= '0' && e.key <= '9') {
         digit(e.key);
       } else if (e.key === '.') {
@@ -899,7 +1227,7 @@
       } else if (e.key === '^') {
         setOp('^');
       } else if (e.key === 'Enter' || e.key === '=') {
-        calculate();
+        handleEquals();
       } else if (e.key === 'Escape') {
         clearAll();
       } else if (e.key === '%') {
